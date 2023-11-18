@@ -15,7 +15,6 @@ const Home = () => {
             <p className="tagline">Test yourself. <i>Compete.</i></p>
             <p className="Explanation">Learning has never been so fun. Compete against yourself, your friends or the world! With Questions tailored for your level and personalized feedback, learning is a garanteed outcome.</p>
             <hr />
-            <p className="description">.</p>
             <a className="btn">Get Started</a>
         </div>
 

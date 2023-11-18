@@ -1,0 +1,36 @@
+.custom-navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #333; /* Dark background for a professional look */
+    padding: 0 2rem; /* Horizontal padding */
+    height: 60px; /* Fixed height */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+  }
+  
+  .nav-item {
+    color: #fff; /* White text color */
+    padding: 0.5rem 1rem; /* Padding for clickable area */
+    text-decoration: none; /* Remove underline from links */
+    font-weight: 500; /* Slightly bold font for legibility */
+    transition: color 0.3s ease; /* Transition for hover effect */
+  }
+  
+  .nav-item:hover {
+    color: #1e90ff; /* Highlight color on hover */
+  }
+  
+  .nav-right {
+    display: flex; /* Align items to the right */
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .custom-navbar {
+      padding: 0 1rem; /* Smaller padding on smaller screens */
+    }
+    .nav-item {
+      padding: 0.5rem 0.8rem; /* Adjust padding for nav items */
+    }
+  }
+  
