@@ -9,7 +9,7 @@ body {
 }
 
 .container {
-    max-width: 800px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
 }
@@ -50,36 +50,60 @@ hr {
     transition: background-color 0.3s, transform 0.3s;
 }
 
-    .btn:hover {
-        background-color: #1e6ad5;
-        transform: translateY(-3px);
-    }
+.btn:hover {
+    background-color: #1e6ad5;
+    transform: translateY(-3px);
+}
 
 .features-container {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: space-around;
+    justify-content: space-evenly;
+    align-items: stretch;
+    flex-wrap: nowrap;
     padding: 20px;
+    margin: 0 -10px;
 }
 
 .feature {
     background-color: #fff;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-    margin: 10px;
-    width: calc(50% - 40px);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin: 0 10px;
+    flex-basis: calc(25% - 20px);
     text-align: center;
-    transition: transform 0.3s, box-shadow 0.3s;
+    transition: transform 0.3s ease-in-out;
 }
 
-    .feature:hover {
-        transform: translateY(-10px);
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-    }
+.feature:hover {
+    transform: translateY(-10px);
+}
+
+
+a, a:hover, a:focus, a:active {
+    text-decoration: none;
+    color: inherit;
+}
 
 .icon {
     font-size: 2.5rem;
     color: #4CAF50;
     margin-bottom: 20px;
+}
+
+@media (max-width: 1024px) {
+    .features-container {
+        flex-wrap: wrap;
+    }
+
+    .feature {
+        flex-basis: calc(50% - 20px);
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .feature {
+        flex-basis: 100%;
+    }
 }
