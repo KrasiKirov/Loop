@@ -11,10 +11,11 @@ const Home = () => {
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" />
         </Helmet>
         <div className="container text-center py-5">
-            <h1><span className="app-title">Bold</span></h1>
-            <p className="tagline">Test yourself.</p>
+            <h1><span className="app-title">Bold.</span></h1>
+            <p className="tagline">Test yourself. <i>Compete.</i></p>
+            <p className="Explanation">Learning has never been so fun. Compete against yourself, your friends or the world! With Questions tailored for your level and personalized feedback, learning is a garanteed outcome.</p>
             <hr />
-            <p className="description">Compete in the world of academia.</p>
+            <p className="description">.</p>
             <a className="btn">Get Started</a>
         </div>
 
