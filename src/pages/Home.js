@@ -13,34 +13,34 @@ const Home = () => {
             <h1><span className="app-title">Bold</span></h1>
             <p className="tagline">Test yourself.</p>
             <hr />
-            <p className="description">Compete.</p>
+            <p className="description">Compete in the world of academia.</p>
             <a className="btn">Get Started</a>
         </div>
 
         <div className="features-container">
             <div className="feature">
-                <i>ICON</i>
+                <i className="fas fa-square-root-alt icon"></i>
                 <h5>Mathematics</h5>
-                <p>DESCRIPTION</p>
+                <p>Explore the universe of numbers and patterns.</p>
             </div>
             <div className="feature">
-                <i> ICON</i>
+                <i className="fas fa-flask icon"></i>
                 <h5>Chemistry</h5>
-                <p>DESCRIPTION</p>
+                <p>Dive into the world of atoms and reactions.</p>
             </div>
             <div className="feature">
-                <i>ICON</i>
+                <i className="fas fa-atom icon"></i>
                 <h5>Physics</h5>
-                <p>DESCRIPTION</p>
+                <p>Unravel the mysteries of energy and matter.</p>
             </div>
             <div className="feature">
-            <i>ICON</i>
-            <h5>Biology</h5>
-            <p>DESCRIPTION</p>
-        </div>
+                <i className="fas fa-dna icon"></i>
+                <h5>Biology</h5>
+                <p>Discover the science of life and living organisms.</p>
+            </div>
         </div>
     </div>
 );
 };
   
-  export default Home;
+export default Home;
