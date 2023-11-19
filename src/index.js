@@ -1,3 +1,10 @@
+
+// App.js
+
+import Question2 from './pages/Question2';
+import NoQuestions from './pages/no-questions'; // Import the new component
+
+
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from "./pages/Navbar";
@@ -76,6 +83,9 @@ export default function App() {
             <Route path="physics/electromagnetics" element={<Electromagnetics />} />
             <Route path="physics/quantumMechanics" element={<QuantumMechanics />} />
             <Route path="physics/thermodynamics" element={<Thermodynamics />} />
+              
+             <Route path="Question" element={<Question2 />} />
+             <Route path="no-questions" element={<NoQuestions />} /> {/* Add the new route */}
 
             {/* Fallback for any other path */}
             <Route path="*" element={<NoPage />} />
