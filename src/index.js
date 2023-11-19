@@ -56,43 +56,42 @@ export default function App() {
 
 
         {/* Nested Routes under Home */}
-        <Route path="/home" element={<Navbar />}>
-            <Route index element={<Home />} />
 
-            <Route path="math" element={<Mathematics />}/>
-            <Route path="math/calculus" element={<Calculus />}/>
-            <Route path="math/calculus/questions" element={<Question />} />
-            <Route path="math/discreteMath" element={<DiscreteMath />} />
-            <Route path="math/linearAlgebra" element={<LinearAlgebra />} />
-            <Route path="math/statistics" element={<Stats />} />
+            <Route path="/home" element={<Home />}/>
+
+            <Route path="home/math" element={<Mathematics />}/>
+            <Route path="home/math/calculus" element={<Calculus />}/>
+            <Route path="home/math/calculus/questions" element={<Question />} />
+            <Route path="home/math/discreteMath" element={<DiscreteMath />} />
+            <Route path="home/math/linearAlgebra" element={<LinearAlgebra />} />
+            <Route path="home/math/statistics" element={<Stats />} />
 
         
-            <Route path="biology" element={<Biology />}/>
-            <Route path="biology/anatomy" element={<Anatomy/>}/>
-            <Route path="biology/microbiology" element={<Microbiology />} />
-            <Route path="biology/molecularBiology" element={<MolecularBiology />} />
-            <Route path="biology/physiology" element={<Physiology />} />
+            <Route path="home/biology" element={<Biology />}/>
+            <Route path="home/biology/anatomy" element={<Anatomy/>}/>
+            <Route path="home/biology/microbiology" element={<Microbiology />} />
+            <Route path="home/biology/molecularBiology" element={<MolecularBiology />} />
+            <Route path="home/biology/physiology" element={<Physiology />} />
 
            
-            <Route path="chemistry" element={<Chemistry />}/>
-            <Route path="chemistry/analyticalChemistry" element={<AnalyticalChemistry />}/>
-            <Route path="chemistry/biochemistry" element={<Biochemistry />} />
-            <Route path="chemistry/organicChemistry" element={<OrganicChemistry/>} />
-            <Route path="chemistry/inorganicChemistry" element={<InorganicChemistry />} />
+            <Route path="home/chemistry" element={<Chemistry />}/>
+            <Route path="home/chemistry/analyticalChemistry" element={<AnalyticalChemistry />}/>
+            <Route path="home/chemistry/biochemistry" element={<Biochemistry />} />
+            <Route path="home/chemistry/organicChemistry" element={<OrganicChemistry/>} />
+            <Route path="home/chemistry/inorganicChemistry" element={<InorganicChemistry />} />
 
             
-            <Route path="physics" element={<Physics />}/>
-            <Route path="physics/astrophysics" element={<Astrophysics />} />
-            <Route path="physics/electromagnetics" element={<Electromagnetics />} />
-            <Route path="physics/quantumMechanics" element={<QuantumMechanics />} />
-            <Route path="physics/thermodynamics" element={<Thermodynamics />} />
+            <Route path="home/physics" element={<Physics />}/>
+            <Route path="home/physics/astrophysics" element={<Astrophysics />} />
+            <Route path="home/physics/electromagnetics" element={<Electromagnetics />} />
+            <Route path="home/physics/quantumMechanics" element={<QuantumMechanics />} />
+            <Route path="home/physics/thermodynamics" element={<Thermodynamics />} />
               
-             <Route path="Question2" element={<Question2 />} />
-             <Route path="no-questions" element={<NoQuestions />} /> {/* Add the new route */}
+             <Route path="home/Question2" element={<Question2 />} />
+             <Route path="home/no-questions" element={<NoQuestions />} /> {/* Add the new route */}
 
             {/* Fallback for any other path */}
             <Route path="*" element={<NoPage />} />
-        </Route>
     </Routes>
 </BrowserRouter>
 </UserProvider>

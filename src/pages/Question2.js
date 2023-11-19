@@ -29,8 +29,8 @@ const Question2 = () => {
 
   const [selectedAnswer, setSelectedAnswer] = useState('');
   const [showFeedback, setShowFeedback] = useState(false);
-  const [elo, setUserElo] = useState(15); // Initial User Elo
-  //const [userElo, setUserElo] = useState(user.elo);
+  //const [elo, setUserElo] = useState(15); // Initial User Elo
+  const [elo, setUserElo] = useState(user.elo);
   const [answerSubmitted, setAnswerSubmitted] = useState(false); // New state
   const [lastDisplayedQuestion, setLastDisplayedQuestion] = useState('');
   const [multiplier, setMultiplier] = useState(0.2);
