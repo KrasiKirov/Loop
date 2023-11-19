@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const bcrypt = require('bcrypt');
 const sql = require('mssql/msnodesqlv8');
 
 const app = express();
@@ -29,19 +28,19 @@ connectToDatabase();
 
 // Login Endpoint
 app.post('/login', async (req, res) => {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
-    console.log("Email received:", email);
+    console.log("Username received:", username);
     console.log(password)
 
-    if (!email || !password) {
-        return res.status(400).send('Email and password are required');
+    if (!username || !password) {
+        return res.status(400).send('Username and password are required');
     }
 
     try {
-        const result = await sql.query`SELECT Email, Password FROM Users WHERE Email = ${email}`;
+        const result = await sql.query`SELECT Username, Password FROM Users WHERE Username = ${username}`;
         if (!result.recordset.length) {
-            return res.status(401).send('Invalid email or password');
+            return res.status(401).send('Invalid username or password');
         }
 
         const user = result.recordset[0];
@@ -49,7 +48,7 @@ app.post('/login', async (req, res) => {
         const validPassword = (password == user.Password);
 
         if (!validPassword) {
-            return res.status(401).send('Invalid email or password');
+            return res.status(401).send('Invalid username or password');
         }
 
         res.send('Login successful');
@@ -61,21 +60,21 @@ app.post('/login', async (req, res) => {
 
 // Signup Endpoint
 app.post('/signup', async (req, res) => {
-    const { name, email, password } = req.body;
+    const { name, username, password } = req.body;
 
-    if (!name || !email || !password) {
-        return res.status(400).send('Name, email, and password are required');
+    if (!name || !username || !password) {
+        return res.status(400).send('Name, username, and password are required');
     }
 
     try {
         // Check if the user already exists
-        const userCheck = await sql.query`SELECT Email FROM Users WHERE Email = ${email}`;
+        const userCheck = await sql.query`SELECT Username FROM Users WHERE Username = ${username}`;
         if (userCheck.recordset.length > 0) {
             return res.status(400).send('User already exists');
         }
 
         // Insert the new user into the database
-        await sql.query`INSERT INTO Users (Name, Email, Password) VALUES (${name}, ${email}, ${password})`;
+        await sql.query`INSERT INTO Users (Name, Username, Password) VALUES (${name}, ${username}, ${password})`;
 
         res.status(201).send('User registered successfully');
     } catch (err) {

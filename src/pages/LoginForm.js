@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../LoginForm.css'
+import '../LoginForm.css';
+import { useUser } from '../UserContext';
 
 function LoginForm() {
-    const [email, setEmail] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
 
     const navigate = useNavigate(); // Hook for navigation
-
+    const { setUser } = useUser();
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -19,10 +20,11 @@ function LoginForm() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ username, password }),
             });
 
             if (response.ok) {
+                setUser({ username });
                 // Redirect to /home on successful login
                 navigate('/home');
             } else {
@@ -41,12 +43,12 @@ function LoginForm() {
                 {message && <p className="login-message">{message}</p>}
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
-                        <label htmlFor="email">Email</label>
+                        <label htmlFor="username">Username</label>
                         <input
-                            id="email"
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            id="username"
+                            type="username"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
                             required
                         />
                     </div>

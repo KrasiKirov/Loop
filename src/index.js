@@ -1,4 +1,4 @@
-
+import { UserProvider } from './UserContext';
 // App.js
 
 import Question2 from './pages/Question2';
@@ -42,6 +42,7 @@ import Thermodynamics from "./Physics/Thermodynamics/thermodynamics";
 
 export default function App() {
   return (
+    <UserProvider>
       <BrowserRouter>
     <Routes>
         {/* Main Route */}
@@ -92,6 +93,7 @@ export default function App() {
         </Route>
     </Routes>
 </BrowserRouter>
+</UserProvider>
   );
 }
 
