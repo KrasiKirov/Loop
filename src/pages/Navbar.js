@@ -8,8 +8,6 @@ function Navbar() {
       <nav className="custom-navbar">
         <NavLink className="nav-item" to="/">Home</NavLink>
         <div className="nav-right">
-          <NavLink className="nav-item" to="/login">Log In</NavLink>
-          <NavLink className="nav-item" to="/score">Score</NavLink>
         </div>
       </nav>
       <Outlet />
