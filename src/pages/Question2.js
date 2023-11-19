@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Papa from 'papaparse';
-import '../Question.css'; // Import the CSS file
+import '../Question2.css'; // Import the CSS file
 import { updateRatings } from './elo';
 import { useNavigate } from 'react-router-dom';
 
