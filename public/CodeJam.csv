@@ -1,41 +1,20 @@
 question,answer1,answer2,answer3,answer4,correctAnswer,feedback,score,subject
-What is the capital of France?,Berlin,London,Paris,Madrid,Paris,Correct! Paris is the capital of France.,20,Geography
-Who wrote "Romeo and Juliet"?,Charles Dickens,William Shakespeare,Mark Twain,J.K. Rowling,William Shakespeare,Correct! "Romeo and Juliet" was written by William Shakespeare.,15,Literature
-What is the largest mammal on Earth?,Elephant,Blue Whale,Giraffe,Gorilla,Blue Whale,Great job! The Blue Whale is the largest mammal on Earth.,25,Science
-Which planet is known as the Red Planet?,Venus,Earth,Mars,Jupiter,Mars,Well done! Mars is often called the Red Planet.,18,Astronomy
-What is the powerhouse of the cell?,Nucleus,Mitochondria,Ribosome,Cytoplasm,Mitochondria,Correct! The powerhouse of the cell is the mitochondria.,22,Biology
-Who painted the Mona Lisa?,Pablo Picasso,Vincent van Gogh,Leonardo da Vinci,Claude Monet,Leonardo da Vinci,Excellent! The Mona Lisa was painted by Leonardo da Vinci.,30,Art
-What is the square root of 64?,4,6,8,10,8,That's right! The square root of 64 is 8.,12,Mathematics
-Which ocean is the largest?,Indian Ocean,Atlantic Ocean,Southern Ocean,Arctic Ocean,Pacific Ocean,Amazing! The Pacific Ocean is the largest ocean on Earth.,28,Geography
-What is the capital of Japan?,Seoul,Beijing,Tokyo,Bangkok,Tokyo,Correct! Tokyo is the capital of Japan.,22,Geography
-Who is known as the "Father of Computer Science"?,Bill Gates,Alan Turing,Steve Jobs,Ada Lovelace,Alan Turing,Great choice! Alan Turing is considered the Father of Computer Science.,25,Technology
-What is the largest desert in the world?,Gobi Desert,Sahara Desert,Arabian Desert,Atacama Desert,Sahara Desert,Well done! The Sahara Desert is the largest desert on Earth.,18,Geography
-Which gas is most abundant in Earth's atmosphere?,Carbon Dioxide(N2),Oxygen(O2),Nitrogen(N2),Methane(CH4),Nitrogen(N2),Fantastic! Nitrogen is the most abundant gas in Earth's atmosphere.,20,Science
-Who wrote "To Kill a Mockingbird"?,George Orwell,Harper Lee,J.K. Rowling,Mark Twain,Harper Lee,Correct! "To Kill a Mockingbird" was written by Harper Lee.,15,Literature
-What is the chemical symbol for gold?,Au,Ag,Hg,Fe,Au,Bravo! Au is the chemical symbol for gold.,28,Chemistry
-In which year did Christopher Columbus first reach the Americas?,1492,1521,1607,1776,1492,Exactly! Christopher Columbus reached the Americas in the year 1492.,24,History
-What is the smallest prime number?,1,2,3,5,2,Correct! 2 is the smallest prime number.,10,Mathematics
-Who painted "Starry Night"?,Vincent van Gogh,Pablo Picasso,Claude Monet,Leonardo da Vinci,Vincent van Gogh,Great job! "Starry Night" was painted by Vincent van Gogh.,30,Art
-What is the main ingredient in guacamole?,Tomato,Avocado,Onion,Lime,Avocado,Perfect! The main ingredient in guacamole is avocado.,26,Cuisine
-What is the capital of France?,Madrid,London,Berlin,Paris,Paris,Correct! Paris is the capital of France.,22,Geography
-Who wrote "Romeo and Juliet"?,Jane Austen,Charles Dickens,William Shakespeare,Mark Twain,William Shakespeare,Well done! "Romeo and Juliet" was written by William Shakespeare.,25,Literature
-What is the largest planet in our solar system?,Venus,Earth,Jupiter,Mars,Jupiter,Exactly! Jupiter is the largest planet in our solar system.,18,Astronomy
-Which country is known as the Land of the Rising Sun?,China,South Korea,Japan,Vietnam,Japan,Great choice! Japan is known as the Land of the Rising Sun.,20,Geography
-What is the capital of Australia?,Sydney,Canberra,Melbourne,Brisbane,Canberra,Bravo! Canberra is the capital of Australia.,28,Geography
-Who invented the telephone?,Alexander Graham Bell,Thomas Edison,Nikola Tesla,Marie Curie,Alexander Graham Bell,Correct! Alexander Graham Bell invented the telephone.,15,Inventions
-Which element has the chemical symbol "O"?,Osmium,Oxygen,Ozone,Octane,Oxygen,Perfect! Oxygen has the chemical symbol "O".,30,Chemistry
-In which year did the Titanic sink?,1905,1912,1920,1931,1912,Exactly! The Titanic sank in the year 1912.,24,History
-What is the square root of 64?,6,7,8,9,8,Correct! The square root of 64 is 8.,10,Mathematics
-Who is known as the "Queen of Pop"?,Britney Spears,Whitney Houston,Madonna,Celine Dion,Madonna,Great job! Madonna is known as the Queen of Pop.,26,Music
-Allo,1,2,3,4,4,Allo,15,Calculus
-Allo,1,2,3,4,4,Allo,19,Calculus
-Allo,1,2,3,4,4,Allo,30,Calculus
-Allo,1,2,3,4,4,Allo,10,Calculus
-Allo,1,2,3,4,4,Allo,12,Calculus
-Allo,1,2,3,4,4,Allo,14,Calculus
-Allo,1,2,3,4,4,Allo,18,Calculus
-Allo,1,2,3,4,4,Allo,20,Calculus
-Allo,1,2,3,4,4,Allo,22,Calculus
-Allo,1,2,3,4,4,Allo,24,Calculus
-Allo,1,2,3,4,4,Allo,27,Calculus
-
+Find the derivative of f(x) = 4x^3 -2x^2 + 5x - 1,12x^2 -4x + 5,12x^2 -4x,6x^2 -4x + 5,4x^3 -4x^2 + 5,12x^2 -4x + 5,The derivative of 4x^3 -2x^2 + 5x - 1 is 12x^2 -4x + 5,15,Calculus
+What is the integral of e^x with respect to x,e^x + C,e^(x^2) + C,ln(x) +C,2e^x + C,e^x + C,The integral of e^x with respect to x is e^x + C where C is the constant of integration,15,Calculus
+Find the critical points of x^3 - 6x^2 + 9x,"x=0,x=3","x=1,x=2","x=0,x=2","x=3,x=4","x=0,x=2",The critical points are where the derivative is equal to zero or undefined,10,Calculus
+Evaluate the integral of (2x+3)dx,x^2 + 3x + C,x^2 + 3x,x^2 + C,x^2 + 3,x^2 + 3,Integrating 2x + 3 with respect to x indeed gives x^2 + 3x + C,22,Calculus
+What is the second derivative of sin(x),cos(x),-sin(x),-cos(x),sin(x),-sin(x),The first derivative is cos(x) and the second is then -sin(x),31,Calculus
+Solve for x in the equation ln(x) = 2,x=1,x=2,x=e^2,x=0,x=e^2,"Taking the exponential on both sides, we get x=e^2",31,Calculus
+Differentiate the function h(x) = 1/(x^2),-2/x,2/(x^3),-2/(x^3),2/x,-2/(x^3),The derivative of  1/(x^2) is -2/(x^3),18,Calculus
+What is the area under the curbe y =2x +1 from x=1 to x=3,9,12,10,15,12,It can be found by evaluation the definite integral of (2x+1)dx from 1 to 3,29,Calculus
+Solve the differential equation dy/dx=2x,y = x^2 + C,y = x^2,y = x + C,y = 2x + C,y = x^2 + C,Integrating both sides gives y = x^2 + C where C is the constant of integration,12,Calculus
+Calculate the derivative of g(x) = x^4 - 3x^2 + 6,4x^3 - 6x,4x^3 - 3x,4x^4 - 6x^2,3x^3 - 6x,4x^3 - 6x,The derivative of x^4 - 3x^2 + 6 is 4x^3 - 6x,20,Calculus
+What is the limit of (x^2 - 1) / (x - 1) as x approaches 1,0,1,2,Undefined,2,The limit simplifies to 2 as x approaches 1,15,Calculus
+Evaluate the integral of 4x dx,x^2 + C,2x^2 + C,4x^2 + C,x^2 + 4C,x^2 + C,The integral of 4x dx is x^2 + C,20,Calculus
+Find the second derivative of f(x) = 3x^2 - 2x + 7,6,-2,6x - 2,3,6,The second derivative of 3x^2 - 2x + 7 is 6,15,Calculus
+What is the convergence or divergence of the series sum of (1/n),Diverges,Converges,0,Infinity,Diverges,The series sum of (1/n) diverges,18,Calculus
+Determine the antiderivative of cos(x),sin(x) + C,-sin(x) + C,cos(x) + C,-cos(x) + C,sin(x) + C,The antiderivative of cos(x) is sin(x) + C,20,Calculus
+Find the area under the curve y = 3x from x=0 to x=2,3,6,9,12,6,The area can be found by evaluating the definite integral of 3x dx from 0 to 2,25,Calculus
+Calculate the limit as x approaches 0 of sin(x)/x,0,1,Undefined,Infinity,1,As x approaches 0, the limit of sin(x)/x is 1,15,Calculus
+Solve the equation dy/dx = 3y for y in terms of x,y = Ce^(3x),y = 3Ce^x,y = Ce^(x/3),y = 3e^(Cx),y = Ce^(3x),The solution of dy/dx = 3y is y = Ce^(3x),20,Calculus
+What is the derivative of tan(x),sec^2(x),cos^2(x),sin^2(x),cot(x),sec^2(x),The derivative of tan(x) is sec^2(x),20,Calculus
