@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { quiz } from '../Mathematics/Calculus/CalculusQuestions'
 import '../Question.css'
 
-const Quiz = () => {
+const Question = () => {
   const [activeQuestion, setActiveQuestion] = useState(0)
   const [selectedAnswer, setSelectedAnswer] = useState('')
   const [showResult, setShowResult] = useState(false)
@@ -92,4 +92,4 @@ const Quiz = () => {
   )
 }
 
-export default Quiz
+export default Question

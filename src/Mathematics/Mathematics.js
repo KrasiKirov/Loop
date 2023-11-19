@@ -17,28 +17,28 @@ const Mathematics = () => {
         </div>
 
         <div className="features-container">
-        <Link to="/math/discreteMath">
+        <Link to="/home/math/discreteMath">
             <div className="feature">
                 <i className="fas fa-plus icon"></i>
                 <h5>Discrete Mathematics</h5>
                 <p>From simple number theory to complex discrete mathematics.</p>
             </div>
         </Link>
-        <Link to="/math/calculus">
+        <Link to="/home/math/calculus">
             <div className="feature">
                 <i className="fas fa-calculator icon"></i>
                 <h5>Calculus</h5>
                 <p>From single variable limits to multivariable and vector calculus.</p>
             </div>
         </Link>
-        <Link to="/math/linearAlgebra">
+        <Link to="/home/math/linearAlgebra">
             <div className="feature">
                 <i className="fas fa-equals icon"></i>
                 <h5>Linear Algebra</h5>
                 <p>From vectors to abstract and complex linear algebra.</p>
             </div>
         </Link>
-        <Link to="/math/statistics">
+        <Link to="/home/math/statistics">
             <div className="feature">
                 <i className="fas fa-dice icon"></i>
                 <h5>Statistics and Probability</h5>

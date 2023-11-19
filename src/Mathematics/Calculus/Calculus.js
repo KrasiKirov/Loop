@@ -18,14 +18,14 @@ const Calculus = () => {
         </div>
         <div className="features-container icon-container">
 
-        <Link to="/math/calculus/question"> 
+        <Link to="/home/math/calculus/question"> 
         
             <div className="feature icon-difficulty">
             <i class="fas fa-star"></i>
                 <h5>Easy question</h5>
             </div>
         </Link>
-        <Link to="/math/calculus/question">
+        <Link to="/home/math/calculus/question">
             <div className="feature icon-difficulty">
             <i class="fas fa-star"></i>
             <i class="fas fa-star"></i>
@@ -33,7 +33,7 @@ const Calculus = () => {
                
             </div>
         </Link>
-        <Link to="/math/calculus/question">
+        <Link to="/home/math/calculus/question">
             <div className="feature icon-difficulty">
             <i class="fas fa-star"></i>
             <i class="fas fa-star"></i>

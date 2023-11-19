@@ -16,10 +16,10 @@ export default function App() {
       <BrowserRouter>
     <Routes>
         {/* Main Route */}
-        <Route path="/" element={<LoginForm />} />
+        <Route path="/" element={<LoginForm />}/>
 
         {/* Nested Routes under Home */}
-        <Route path="home" element={<Navbar />}>
+        <Route path="/home" element={<Navbar />}>
             <Route index element={<Home />} />
             <Route path="math" element={<Mathematics />}/>
             <Route path="math/calculus" element={<Calculus />}/>
@@ -27,10 +27,10 @@ export default function App() {
             <Route path="math/discreteMath" element={<DiscreteMath />} />
             <Route path="math/linearAlgebra" element={<LinearAlgebra />} />
             <Route path="math/statistics" element={<Stats />} />
-        </Route>
 
-        {/* Fallback for any other path */}
-        <Route path="*" element={<NoPage />} />
+            {/* Fallback for any other path */}
+            <Route path="*" element={<NoPage />} />
+        </Route>
     </Routes>
 </BrowserRouter>
   );
