@@ -1,0 +1,74 @@
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #eaeef3; /* Light background for contrast */
+}
+
+.login-form {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px; /* Rounded edges for a softer look */
+    box-shadow: 8px 8px 15px #a7a9af, /* Shadow on the right-bottom */
+               -8px -8px 15px #ffffff; /* Highlight on the left-top */
+    max-width: 400px;
+    width: 100%;
+    margin: auto;
+}
+
+.login-form h2 {
+    color: #333;
+    font-size: 2rem; /* Larger font size for the title */
+    margin-bottom: 2rem; /* More space below the title */
+    font-weight: 600; /* Font weight for material design */
+    text-align: center; /* Centering the title text */
+}
+
+.form-group {
+    margin-bottom: 2rem; /* Increase spacing for a cleaner look */
+}
+
+.form-group label {
+    display: block;
+    color: #333;
+    margin-bottom: .5rem;
+    font-size: 1rem;
+    font-weight: 500; /* Slightly bolder labels */
+}
+
+.form-group input {
+    width: 100%;
+    padding: 15px;
+    border: 1px solid #ced4da; /* Subtle borders for input fields */
+    border-radius: 10px; /* Rounded corners for input fields */
+    box-sizing: border-box;
+    font-size: 1rem;
+    background-color: #eaeef3; /* Light background for the inputs */
+    box-shadow: inset 3px 3px 5px #a7a9af, /* Inner shadow for neumorphism */
+                inset -3px -3px 5px #ffffff; /* Inner highlight */
+}
+
+.login-button {
+    background-color: #007bff; /* Material blue for the button */
+    color: white;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 10px; /* Rounded corners for the button */
+    cursor: pointer;
+    width: 100%; /* Full width button */
+    font-size: 1rem;
+    letter-spacing: 0.05rem; /* Spacing between letters for a clean look */
+    box-shadow: 4px 4px 10px #a7a9af; /* Shadow for the button */
+    transition: background-color 0.3s, box-shadow 0.3s; /* Smooth transitions */
+}
+
+.login-button:hover {
+    background-color: #0056b3; /* Darker shade on hover */
+    box-shadow: none; /* Removing shadow on hover for a 'lifted' effect */
+}
+
+.login-message {
+    color: #d32f2f; /* Material design error color */
+    margin-bottom: 1rem;
+}

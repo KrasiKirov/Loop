@@ -59,6 +59,31 @@ app.post('/login', async (req, res) => {
     }
 });
 
+// Signup Endpoint
+app.post('/signup', async (req, res) => {
+    const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+        return res.status(400).send('Name, email, and password are required');
+    }
+
+    try {
+        // Check if the user already exists
+        const userCheck = await sql.query`SELECT Email FROM Users WHERE Email = ${email}`;
+        if (userCheck.recordset.length > 0) {
+            return res.status(400).send('User already exists');
+        }
+
+        // Insert the new user into the database
+        await sql.query`INSERT INTO Users (Name, Email, Password) VALUES (${name}, ${email}, ${password})`;
+
+        res.status(201).send('User registered successfully');
+    } catch (err) {
+        console.error('Error during user registration:', err);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

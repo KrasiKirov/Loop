@@ -1,0 +1,74 @@
+.signup-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #eaeef3;
+}
+
+.signup-form {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 8px 8px 15px #a7a9af,
+                -8px -8px 15px #ffffff;
+    max-width: 400px;
+    width: 100%;
+    margin: auto;
+}
+
+.signup-form h2 {
+    color: #333;
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 2rem;
+}
+
+.form-group label {
+    display: block;
+    color: #333;
+    margin-bottom: .5rem;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 15px;
+    border: 1px solid #ced4da;
+    border-radius: 10px;
+    box-sizing: border-box;
+    font-size: 1rem;
+    background-color: #eaeef3;
+    box-shadow: inset 3px 3px 5px #a7a9af,
+                inset -3px -3px 5px #ffffff;
+}
+
+.signup-button {
+    background-color: #28a745; /* A green shade for sign up to distinguish from login */
+    color: white;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    width: 100%;
+    font-size: 1rem;
+    letter-spacing: 0.05rem;
+    box-shadow: 4px 4px 10px #a7a9af;
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.signup-button:hover {
+    background-color: #218838; /* Darker shade on hover */
+    box-shadow: none;
+}
+
+.signup-message {
+    color: #d32f2f;
+    margin-bottom: 1rem;
+}
