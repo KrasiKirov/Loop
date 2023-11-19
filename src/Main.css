@@ -3,7 +3,8 @@
     flex-direction: column;
     align-items: center; 
     gap: 20px; 
-    margin-top: 50px; 
+    margin-top: 50px;
+} 
 
 .btn {
     padding: 15px 40px; 
