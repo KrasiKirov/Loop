@@ -4,12 +4,11 @@ import '../Question2.css'; // Import the CSS file
 import { updateRatings } from './elo';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { useQuizSettings } from '../QuizContext';
+import { diff } from 'semver';
 import { useUser } from '../UserContext';
 
 
-
 const Question2 = () => {
-
   const { setQuizSettings } = useQuizSettings();
   const location = useLocation();
 
@@ -30,54 +29,57 @@ const Question2 = () => {
 
   const [selectedAnswer, setSelectedAnswer] = useState('');
   const [showFeedback, setShowFeedback] = useState(false);
-  const [userElo, setUserElo] = useState(user.elo);
+  const [elo, setUserElo] = useState(15); // Initial User Elo
+  //const [userElo, setUserElo] = useState(user.elo);
   const [answerSubmitted, setAnswerSubmitted] = useState(false); // New state
   const [lastDisplayedQuestion, setLastDisplayedQuestion] = useState('');
   const [multiplier, setMultiplier] = useState(0.2);
-  const [lowerBound, setLowerBound] = useState(userElo - userElo * multiplier);
-  const [higherBound, setHigherBound] = useState(userElo + userElo * multiplier);
+  const [lowerBound, setLowerBound] = useState(elo - elo * multiplier);
+  const [higherBound, setHigherBound] = useState(elo + elo * multiplier);
   const [answeredQuestionsHistory, setAnsweredQuestionsHistory] = useState([]);
-
   const { quizSettings } = useQuizSettings();
   const { difficulty, subject } = quizSettings;
+ 
 
   console.log(difficulty);
   console.log("Subject: " + subject);
-  setInitialBounds(difficulty);
- useEffect(() => {
-    // Set initial bounds based on difficulty level
-    setInitialBounds(difficulty);
-    console.log("LowerBound: " + lowerBound)
-    console.log("HigherBound: " + higherBound)
-    fetchData(csvFile);
-  
-}, [csvFile, difficulty]);
 
-const setInitialBounds = (difficulty) => {
+useEffect(() => {
+ // setInitialBounds(difficulty);
+  fetchData(csvFile);
+}, []); // Empty dependency array to run only once
+
+
+const setInitialBounds = (difficulty, elo) => {
   switch (difficulty) {
     case 'easy':
-      setLowerBound(userElo - Math.round(userElo * 2 * multiplier));
-      setHigherBound(userElo);
+      setLowerBound(elo - Math.round(elo * 2 * multiplier));
+      setHigherBound(elo);
       break;
     case 'medium':
-      setLowerBound(Math.round(userElo - userElo * multiplier));
-      setHigherBound(Math.round(userElo + userElo * multiplier));
+      setLowerBound(Math.round(elo - elo * multiplier));
+      setHigherBound(Math.round(elo + elo * multiplier));
       break;
     case 'hard':
-      setLowerBound(userElo);
-      setHigherBound(Math.round(userElo + userElo * multiplier * 2));
+      setLowerBound(elo);
+      setHigherBound(Math.round(elo + elo * multiplier * 2));
       break;
     default:
+      // Set default bounds
+      console.log("Entered default: value is: " + difficulty)
+      setLowerBound(0);
+      setHigherBound(1000);
       break;
   }
 };
 
 
-
-
 const fetchData = async () => {
-  console.log("Lower Bound: " + lowerBound)
-  console.log("Upper Bound: " + higherBound)
+
+  console.log("Difficulty: " + difficulty)
+  setInitialBounds(difficulty,elo );
+  console.log("Lowerbound: " + lowerBound)
+  console.log("UpperBound: " + higherBound)
   // Fetch and parse CSV data
   try {
     const response = await fetch('/CodeJam.csv');
@@ -88,18 +90,18 @@ const fetchData = async () => {
       dynamicTyping: true,
       complete: (result) => {
         if (result.data && result.data.length > 0) {
-          // Filter questions within the updated score range, matching subject,
-          // and not in the answered questions history
+          // Filter questions within the updated score range, matching subject
           const filteredQuestions = result.data.filter(
             (item) =>
               item.score >= lowerBound &&
               item.score <= higherBound &&
-              !answeredQuestionsHistory.includes(item.question) &&
               item.subject === subject // Check if the subject matches
           );
 
           if (filteredQuestions.length > 0) {
             let randomIndex;
+
+            // Keep trying until a new question is selected
             do {
               // Randomly select a question from the filtered list
               randomIndex = Math.floor(Math.random() * filteredQuestions.length);
@@ -153,29 +155,25 @@ const fetchData = async () => {
   };
 
   const handleSubmitAnswer = () => {
+
     // Check if an answer is selected
     if (!selectedAnswer) {
       alert('Please select an answer before submitting.');
       return;
     }
-
-    // Check if the question was already answered correctly in the last 24 hours
-    if (answeredQuestionsHistory.includes(randomQuestion.question)) {
-      alert('You already answered this question correctly in the last 24 hours.');
-      return;
-    }
-
+  
     // Calculate the new ELO based on the result (1 for correct, 0 for incorrect)
     const result = selectedAnswer === randomQuestion.correctAnswer ? 1 : 0;
-    const updatedUserElo = updateRatings(userElo, randomQuestion.score, result);
-
+    const updatedUserElo = updateRatings(elo, randomQuestion.score, result);
+  
     // Update the user's ELO
     setUserElo(updatedUserElo);
-
+  
     // Display feedback along with the new ELO
     if (selectedAnswer === randomQuestion.correctAnswer) {
       // Correct answer
       setShowFeedback(`Good Job! Your new ELO: ${Math.floor(updatedUserElo)}`);
+  
       // Add the answered question to the history
       setAnsweredQuestionsHistory((prev) => [...prev, randomQuestion.question]);
     } else {
@@ -184,41 +182,46 @@ const fetchData = async () => {
     }
     setAnswerSubmitted(true);
   };
-
+  
+  
   const handleButtonClick = (type) => {
- 
-
+    console.log('Button Clicked - Type:', type);
+  
     switch (type) {
       case 'harder':
         // Increase difficulty by multiplying the current score by 1.2
         setQuizSettings({ subject: 'Calculus', difficulty: "hard" });
         break;
       case 'easier':
+        // Decrease difficulty by multiplying the current score by 0.9
         setQuizSettings({ subject: 'Calculus', difficulty: "easy" });
         break;
       case 'similar':
         setQuizSettings({ subject: 'Calculus', difficulty: "medium" });
         break;
       default:
+        console.log('Unexpected type:', type);
         break;
     }
-
-
+  
+   
+    //setInitialBounds(difficulty)
     // Fetch a new question
     fetchData();
-
+  
     // Reset state for the new question
     setSelectedAnswer('');
     setShowFeedback(false);
     setAnswerSubmitted(false); // Reset answerSubmitted to false
   };
+  
 
   return (
     <div className="container">
       {randomQuestion.question ? (
         <>
           <h1>{randomQuestion.question}</h1>
-          <p>{"Level: " + randomQuestion.score + ". Your ELO is: " + Math.floor(userElo)}</p>
+          <p>{"Level: " + randomQuestion.score + ". Your ELO is: " + Math.floor(elo)}</p>
   
           <div className="answers-container">
             {randomQuestion.answers.map((answer, index) => (
@@ -241,7 +244,7 @@ const fetchData = async () => {
           {showFeedback && (
             <div className="feedback">
               <p>{showFeedback}</p>
-              <p className="center-elo">Your new ELO: {Math.floor(userElo)}</p>
+              <p className="center-elo">Your new ELO: {Math.floor(elo)}</p>
               <div className="center-buttons">
                 <button onClick={() => handleButtonClick('harder')}>Harder Question</button>
                 <button onClick={() => handleButtonClick('easier')}>Easier Question</button>

@@ -26,21 +26,21 @@ const Calculus = () => {
         </div>
         <div className="features-container icon-container">
 
-        <Link to="/home/question2" onClick={() => handleDifficultySelection('Easy')}>
+        <Link to="/home/question2" onClick={() => handleDifficultySelection('easy')}>
             <div className="feature icon-difficulty">
                 <i class="fas fa-star"></i>
                 <h5>Easy question</h5>
             </div>
         </Link>
 
-        <Link to="/home/question2" onClick={() => handleDifficultySelection('Medium')}>
+        <Link to="/home/question2" onClick={() => handleDifficultySelection('medium')}>
             <div className="feature icon-difficulty">
                 <i class="fas fa-star"></i>
                 <i class="fas fa-star"></i>
                 <h5>Medium question</h5>  
             </div>
         </Link>
-        <Link to="/home/question2" onClick={() => handleDifficultySelection('Hard')}>
+        <Link to="/home/question2" onClick={() => handleDifficultySelection('hard')}>
                 <div className="feature icon-difficulty">
                     <i class="fas fa-star"></i>
                     <i class="fas fa-star"></i>
