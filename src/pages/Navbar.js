@@ -3,6 +3,7 @@ import { useUser } from '../UserContext';
 import { NavLink, Outlet } from 'react-router-dom';
 import '../Navbar.css';
 
+
 function Navbar() {
 
   const { user } = useUser();

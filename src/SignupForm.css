@@ -50,7 +50,7 @@
 }
 
 .signup-button {
-    background-color: #28a745; /* A green shade for sign up to distinguish from login */
+    background-color: #28a745; 
     color: white;
     padding: 15px 30px;
     border: none;
@@ -64,7 +64,7 @@
 }
 
 .signup-button:hover {
-    background-color: #218838; /* Darker shade on hover */
+    background-color: #218838; 
     box-shadow: none;
 }
 
