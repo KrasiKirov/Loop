@@ -2,19 +2,26 @@ import React, { useState, useEffect } from 'react';
 import Papa from 'papaparse';
 import '../Question2.css'; // Import the CSS file
 import { updateRatings } from './elo';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useParams, useNavigate } from 'react-router-dom';
+import { useQuizSettings } from '../QuizContext';
+
 
 const Question2 = () => {
-  const navigate = useNavigate();
+
+  const { setQuizSettings } = useQuizSettings();
+  const location = useLocation();
+
+  const csvFile = './CodeJam.csv';
   const [randomQuestion, setRandomQuestion] = useState({
     question: '',
     answers: [],
     correctAnswer: '',
     feedback: '',
     score: 0,
-    subject: '', // Added subject property
-    lastDisplayedQuestion: '', // New property to track the last displayed question
+    subject: '',
+    lastDisplayedQuestion: '',
   });
+
   const [selectedAnswer, setSelectedAnswer] = useState('');
   const [showFeedback, setShowFeedback] = useState(false);
   const [userElo, setUserElo] = useState(15); // Initial User Elo
@@ -25,77 +32,111 @@ const Question2 = () => {
   const [higherBound, setHigherBound] = useState(userElo + userElo * multiplier);
   const [answeredQuestionsHistory, setAnsweredQuestionsHistory] = useState([]);
 
+  const { quizSettings } = useQuizSettings();
+  const { difficulty, subject } = quizSettings;
+
+  console.log(difficulty);
+  console.log("Subject: " + subject);
+  setInitialBounds(difficulty);
   useEffect(() => {
-    fetchData();
-  }, []);
+    const bounds = getBounds(quizSettings.difficulty, userElo);
+    fetchData(bounds.lower, bounds.upper);
+  }, [quizSettings.difficulty, userElo]);
 
-  const fetchData = async () => {
-    try {
-      const response = await fetch('/CodeJam.csv'); // Assuming CodeJam.csv is in the public directory
-      const csvData = await response.text();
+const setInitialBounds = (difficulty) => {
+  switch (difficulty) {
+    case 'easy':
+      setLowerBound(userElo - Math.round(userElo * 2 * multiplier));
+      setHigherBound(userElo);
+      break;
+    case 'medium':
+      setLowerBound(Math.round(userElo - userElo * multiplier));
+      setHigherBound(Math.round(userElo + userElo * multiplier));
+      break;
+    case 'hard':
+      setLowerBound(userElo);
+      setHigherBound(Math.round(userElo + userElo * multiplier * 2));
+      break;
+    default:
+      break;
+  }
+};
 
-      Papa.parse(csvData, {
-        header: true,
-        dynamicTyping: true,
-        complete: (result) => {
-          if (result.data && result.data.length > 0) {
-            // Filter questions within the updated score range and not in the answered questions history
-            const filteredQuestions = result.data.filter(
-              (item) =>
-                item.score >= lowerBound &&
-                item.score <= higherBound &&
-                !answeredQuestionsHistory.includes(item.question)
+
+
+
+const fetchData = async () => {
+  console.log("Lower Bound: " + lowerBound)
+  console.log("Upper Bound: " + higherBound)
+  // Fetch and parse CSV data
+  try {
+    const response = await fetch('/CodeJam.csv');
+    const csvData = await response.text();
+
+    Papa.parse(csvData, {
+      header: true,
+      dynamicTyping: true,
+      complete: (result) => {
+        if (result.data && result.data.length > 0) {
+          // Filter questions within the updated score range, matching subject,
+          // and not in the answered questions history
+          const filteredQuestions = result.data.filter(
+            (item) =>
+              item.score >= lowerBound &&
+              item.score <= higherBound &&
+              !answeredQuestionsHistory.includes(item.question) &&
+              item.subject === subject // Check if the subject matches
+          );
+
+          if (filteredQuestions.length > 0) {
+            let randomIndex;
+            do {
+              // Randomly select a question from the filtered list
+              randomIndex = Math.floor(Math.random() * filteredQuestions.length);
+            } while (
+              filteredQuestions[randomIndex].question === lastDisplayedQuestion
             );
 
-            if (filteredQuestions.length > 0) {
-              let randomIndex;
-              do {
-                // Randomly select a question from the filtered list
-                randomIndex = Math.floor(Math.random() * filteredQuestions.length);
-              } while (
-                filteredQuestions[randomIndex].question === lastDisplayedQuestion
-              );
+            const randomQuestionData = filteredQuestions[randomIndex];
 
-              const randomQuestionData = filteredQuestions[randomIndex];
+            // Extract question, answers, correct answer, feedback, score, and subject from CSV data
+            const question = randomQuestionData.question;
+            const answers = [
+              randomQuestionData.answer1,
+              randomQuestionData.answer2,
+              randomQuestionData.answer3,
+              randomQuestionData.answer4,
+            ];
+            const correctAnswer = randomQuestionData.correctAnswer;
+            const feedback = randomQuestionData.feedback;
+            const score = randomQuestionData.score;
+            const subject = randomQuestionData.subject; // Added subject
 
-              // Extract question, answers, correct answer, feedback, score, and subject from CSV data
-              const question = randomQuestionData.question;
-              const answers = [
-                randomQuestionData.answer1,
-                randomQuestionData.answer2,
-                randomQuestionData.answer3,
-                randomQuestionData.answer4,
-              ];
-              const correctAnswer = randomQuestionData.correctAnswer;
-              const feedback = randomQuestionData.feedback;
-              const score = randomQuestionData.score;
-              const subject = randomQuestionData.subject; // Added subject
+            setRandomQuestion((prev) => ({
+              ...prev,
+              question,
+              answers,
+              correctAnswer,
+              feedback,
+              score,
+              subject,
+              lastDisplayedQuestion: question, // Update lastDisplayedQuestion
+            }));
+          } else {
+            // No available questions
+            // navigate('/home/no-questions');
+          }
+        }
+      },
+      error: (error) => {
+        console.error('Error parsing CSV:', error);
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching CSV:', error);
+  }
+};
 
-              setRandomQuestion((prev) => ({
-                ...prev,
-                question,
-                answers,
-                correctAnswer,
-                feedback,
-                score,
-                subject,
-                lastDisplayedQuestion: question, // Update lastDisplayedQuestion
-              }));
-            } else {
-              // No available questions
-              navigate('/home/no-questions');
-              };
-            }
-          
-        },
-        error: (error) => {
-          console.error('Error parsing CSV:', error);
-        },
-      });
-    } catch (error) {
-      console.error('Error fetching CSV:', error);
-    }
-  };
 
   const handleAnswerSelection = (answer) => {
     setSelectedAnswer(answer);
@@ -135,30 +176,23 @@ const Question2 = () => {
   };
 
   const handleButtonClick = (type) => {
-    let newLowerBound, newHigherBound;
+ 
 
     switch (type) {
       case 'harder':
         // Increase difficulty by multiplying the current score by 1.2
-        newLowerBound = Math.round(userElo);
-        newHigherBound = Math.round(userElo + userElo * 2 * multiplier);
+        setQuizSettings({ subject: 'Calculus', difficulty: "hard" });
         break;
       case 'easier':
-        // Decrease difficulty by multiplying the current score by 0.9
-        newLowerBound = userElo - Math.round(userElo * 2 * multiplier); // Keep the lower bound unchanged
-        newHigherBound = userElo;
+        setQuizSettings({ subject: 'Calculus', difficulty: "easy" });
         break;
       case 'similar':
-        newLowerBound = Math.round(userElo - userElo * multiplier);
-        newHigherBound = Math.round(userElo + userElo * multiplier);
+        setQuizSettings({ subject: 'Calculus', difficulty: "medium" });
         break;
       default:
         break;
     }
 
-    // Update the score bounds
-    setLowerBound(newLowerBound);
-    setHigherBound(newHigherBound);
 
     // Fetch a new question
     fetchData();
