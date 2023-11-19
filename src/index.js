@@ -6,7 +6,7 @@ import Home from './pages/Home';
 import Mathematics from './pages/Mathematics';
 import Calculus1 from './pages/Calculus1';
 import NoPage from './pages/NoPage';
-import Question from './pages/Question';
+import Question from './pages/Question2';
 import NoQuestions from './pages/no-questions'; // Import the new component
 
 export default function App() {
