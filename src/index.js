@@ -84,7 +84,7 @@ export default function App() {
             <Route path="physics/quantumMechanics" element={<QuantumMechanics />} />
             <Route path="physics/thermodynamics" element={<Thermodynamics />} />
               
-             <Route path="Question" element={<Question2 />} />
+             <Route path="Question2" element={<Question2 />} />
              <Route path="no-questions" element={<NoQuestions />} /> {/* Add the new route */}
 
             {/* Fallback for any other path */}

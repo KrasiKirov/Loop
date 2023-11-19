@@ -4,7 +4,7 @@ import '../Question2.css'; // Import the CSS file
 import { updateRatings } from './elo';
 import { useNavigate } from 'react-router-dom';
 
-const Question = () => {
+const Question2 = () => {
   const navigate = useNavigate();
   const [randomQuestion, setRandomQuestion] = useState({
     question: '',
@@ -83,7 +83,7 @@ const Question = () => {
               }));
             } else {
               // No available questions
-              navigate('/no-questions');
+              navigate('/home/no-questions');
               };
             }
           
@@ -216,4 +216,4 @@ const Question = () => {
   
 };
 
-export default Question;
+export default Question2;
