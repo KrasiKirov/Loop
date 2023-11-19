@@ -24,7 +24,7 @@ function LoginForm() {
             });
 
             if (response.ok) {
-                setUser({ username });
+                setUser({ name: response.name, username: response.username, elo: response.elo });
                 // Redirect to /home on successful login
                 navigate('/home');
             } else {

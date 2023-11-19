@@ -5,11 +5,16 @@ import { updateRatings } from './elo';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { useQuizSettings } from '../QuizContext';
 import { diff } from 'semver';
+import { useUser } from '../UserContext';
 
 
 const Question2 = () => {
   const { setQuizSettings } = useQuizSettings();
   const location = useLocation();
+
+  const { user } = useUser();
+
+
 
   const csvFile = './CodeJam.csv';
   const [randomQuestion, setRandomQuestion] = useState({
@@ -25,6 +30,7 @@ const Question2 = () => {
   const [selectedAnswer, setSelectedAnswer] = useState('');
   const [showFeedback, setShowFeedback] = useState(false);
   const [elo, setUserElo] = useState(15); // Initial User Elo
+  //const [userElo, setUserElo] = useState(user.elo);
   const [answerSubmitted, setAnswerSubmitted] = useState(false); // New state
   const [lastDisplayedQuestion, setLastDisplayedQuestion] = useState('');
   const [multiplier, setMultiplier] = useState(0.2);

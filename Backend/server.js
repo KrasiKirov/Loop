@@ -38,7 +38,7 @@ app.post('/login', async (req, res) => {
     }
 
     try {
-        const result = await sql.query`SELECT Username, Password FROM Users WHERE Username = ${username}`;
+        const result = await sql.query`SELECT Username, Password, Score FROM Users WHERE Username = ${username}`;
         if (!result.recordset.length) {
             return res.status(401).send('Invalid username or password');
         }
@@ -51,7 +51,7 @@ app.post('/login', async (req, res) => {
             return res.status(401).send('Invalid username or password');
         }
 
-        res.send('Login successful');
+        res.json({ name: user.Name, username: user.Username, elo: user.Score });
     } catch (err) {
         console.error('Database query error: ', err);
         res.status(500).send('Internal Server Error');
