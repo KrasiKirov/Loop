@@ -1,45 +1,56 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../LoginForm.css'
+import '../SignupForm.css';
 
-function LoginForm() {
+function SignupForm() {
+    const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
 
-    const navigate = useNavigate(); // Hook for navigation
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Send a POST request to the server
+        // Send a POST request to the server for signup
         try {
-            const response = await fetch('http://localhost:3000/login', {
+            const response = await fetch('http://localhost:3000/signup', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ name, email, password }),
             });
 
             if (response.ok) {
-                // Redirect to /home on successful login
-                navigate('/home');
+                setMessage('Signup successful');
+                navigate('/login'); // Redirect to login page after successful signup
             } else {
-                setMessage('Login failed');
+                setMessage('Signup failed');
             }
         } catch (error) {
             console.error('Error:', error);
-            setMessage('An error occurred');
+            setMessage('An error occurred during signup');
         }
     };
 
     return (
-        <div className="login-container">
-            <div className="login-form">
-                <h2>Login</h2>
-                {message && <p className="login-message">{message}</p>}
+        <div className="signup-container">
+            <div className="signup-form">
+                <h2>Sign Up</h2>
+                {message && <p className="signup-message">{message}</p>}
                 <form onSubmit={handleSubmit}>
+                    <div className="form-group">
+                        <label htmlFor="name">Name</label>
+                        <input
+                            id="name"
+                            type="text"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            required
+                        />
+                    </div>
                     <div className="form-group">
                         <label htmlFor="email">Email</label>
                         <input
@@ -60,11 +71,11 @@ function LoginForm() {
                             required
                         />
                     </div>
-                    <button type="submit" className="login-button">Login</button>
+                    <button type="submit" className="signup-button">Sign Up</button>
                 </form>
             </div>
         </div>
     );
 }
 
-export default LoginForm;
+export default SignupForm;
