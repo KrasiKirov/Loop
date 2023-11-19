@@ -10,6 +10,8 @@ import Question from './pages/Question';
 import LinearAlgebra  from "./Mathematics/LinearAlgebra/LinearAlgebra";
 import DiscreteMath from "./Mathematics/DiscreteMath/DiscreteMath";
 import Stats from "./Mathematics/Stats/Stats";
+import SignupForm from './pages/SignupForm';
+import Main from './pages/Main'
 
 import Biology from "./Biology/Biology";
 import Microbiology from "./Biology/Microbiology/microbiology";
@@ -36,9 +38,12 @@ export default function App() {
       <BrowserRouter>
     <Routes>
         {/* Main Route */}
-      
+
+  
+        <Route path="/" element={<Main />}/>
         <Route path="/login" element={<LoginForm />}/>
-      
+        <Route path="/signup" element={<SignupForm />}/>
+
 
         {/* Nested Routes under Home */}
         <Route path="/home" element={<Navbar />}>

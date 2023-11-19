@@ -1,0 +1,42 @@
+.buttons-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center align buttons */
+    gap: 20px; /* Increase space between buttons */
+    margin-top: 50px; /* Add more space from the top */
+}
+
+.btn {
+    padding: 15px 40px; /* More padding for larger buttons */
+    font-size: 1.1rem; /* Slightly larger text */
+    font-weight: 600; /* Bold text */
+    border-radius: 30px; /* Rounded corners */
+    border: 2px solid transparent; /* Prepare for hover effect */
+    cursor: pointer;
+    transition: all 0.3s ease; /* Smooth transition for all changes */
+    width: 200px; /* Fixed width for consistency */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+    text-transform: uppercase; /* Uppercase text for a more impactful look */
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: white;
+    color: #007bff;
+    border-color: #007bff; /* Border transition for a button that 'fills in' */
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: white;
+    color: #6c757d;
+    border-color: #6c757d; /* Border transition for a button that 'fills in' */
+}
