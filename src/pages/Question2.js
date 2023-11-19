@@ -4,12 +4,18 @@ import '../Question2.css'; // Import the CSS file
 import { updateRatings } from './elo';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { useQuizSettings } from '../QuizContext';
+import { useUser } from '../UserContext';
+
 
 
 const Question2 = () => {
 
   const { setQuizSettings } = useQuizSettings();
   const location = useLocation();
+
+  const { user } = useUser();
+
+
 
   const csvFile = './CodeJam.csv';
   const [randomQuestion, setRandomQuestion] = useState({
@@ -24,7 +30,7 @@ const Question2 = () => {
 
   const [selectedAnswer, setSelectedAnswer] = useState('');
   const [showFeedback, setShowFeedback] = useState(false);
-  const [userElo, setUserElo] = useState(15); // Initial User Elo
+  const [userElo, setUserElo] = useState(user.elo);
   const [answerSubmitted, setAnswerSubmitted] = useState(false); // New state
   const [lastDisplayedQuestion, setLastDisplayedQuestion] = useState('');
   const [multiplier, setMultiplier] = useState(0.2);
@@ -38,10 +44,14 @@ const Question2 = () => {
   console.log(difficulty);
   console.log("Subject: " + subject);
   setInitialBounds(difficulty);
-  useEffect(() => {
-    const bounds = getBounds(quizSettings.difficulty, userElo);
-    fetchData(bounds.lower, bounds.upper);
-  }, [quizSettings.difficulty, userElo]);
+ useEffect(() => {
+    // Set initial bounds based on difficulty level
+    setInitialBounds(difficulty);
+    console.log("LowerBound: " + lowerBound)
+    console.log("HigherBound: " + higherBound)
+    fetchData(csvFile);
+  
+}, [csvFile, difficulty]);
 
 const setInitialBounds = (difficulty) => {
   switch (difficulty) {
