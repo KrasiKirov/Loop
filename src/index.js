@@ -5,21 +5,27 @@ import Home from "./pages/Home";
 import Mathematics from "./pages/Mathematics";
 import Calculus1 from "./pages/Calculus1";
 import NoPage from "./pages/NoPage";
+import LoginForm from './pages/LoginForm';
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Navbar />}>
-          <Route index element={<Home />} />
-          <Route path="math" element={<Mathematics />}>
-            <Route path="calculus1" element={<Calculus1 />} />
-          </Route>
-          <Route path="*" element={<NoPage />} />
-        </Route>
-        
-      </Routes>
-    </BrowserRouter>
+      <BrowserRouter>
+          <Routes>
+              {/* Main Route */}
+              <Route path="/" element={<LoginForm />} />
+
+              {/* Nested Routes under Home */}
+              <Route path="home" element={<Navbar />}>
+                  <Route index element={<Home />} />
+                  <Route path="math" element={<Mathematics />}>
+                      <Route path="calculus1" element={<Calculus1 />} />
+                  </Route>
+              </Route>
+
+              {/* Fallback for any other path */}
+              <Route path="*" element={<NoPage />} />
+          </Routes>
+      </BrowserRouter>
   );
 }
 
