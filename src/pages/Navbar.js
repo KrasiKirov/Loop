@@ -1,7 +1,7 @@
 import React from 'react';
 import { useUser } from '../UserContext';
 import { NavLink, Outlet } from 'react-router-dom';
-import '../Navbar.css'; // Ensure this path is correct and loaded after Bootstrap CSS
+import '../Navbar.css'; 
 
 function Navbar() {
 
