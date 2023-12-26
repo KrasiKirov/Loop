@@ -1,20 +1,22 @@
 // elo.js
+export const updateRatings = (currentElo, questionScore, result, questionDifficulty) => {
+  const kFactor = 32; // Basic K-factor, can be dynamic based on user's ELO or other factors
+  const expectedScore = 1 / (1 + Math.pow(10, (questionScore - currentElo) / 400));
+  const actualScore = result ? 1 : 0;
+  const difficultyBonus = getDifficultyBonus(questionDifficulty);
 
-export function expectedOutcome(ratingUser, ratingQuestion) {
-  return 1 / (1 + Math.pow(10, (ratingQuestion - ratingUser) / 400));
-}
+  return currentElo + kFactor * (actualScore - expectedScore) + difficultyBonus;
+};
 
-export function updateRatings(ratingUser, ratingQuestion, outcomeUser) {
-  const kFactor = 16;
-  const expectedUser = expectedOutcome(ratingUser, ratingQuestion);
-  const expectedQuestion = 1 - expectedUser;
-
-  // Calculate the new ratings
-  let newRatingUser = ratingUser + kFactor * (outcomeUser - expectedUser);
-  const newRatingQuestion = ratingQuestion + kFactor * ((1 - outcomeUser) - expectedQuestion);
-
-  // Set a minimum ELO (e.g., 0)
-  newRatingUser = Math.max(newRatingUser, 0);
-
-  return newRatingUser;
-}
+const getDifficultyBonus = (difficulty) => {
+  switch (difficulty) {
+    case 'easy':
+      return 0; // Less ELO for easy questions
+    case 'medium':
+      return 5; // Neutral for medium questions
+    case 'hard':
+      return 10; // Bonus ELO for hard questions
+    default:
+      return 0;
+  }
+};

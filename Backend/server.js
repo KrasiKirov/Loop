@@ -83,47 +83,25 @@ app.post('/signup', async (req, res) => {
     }
 });
 
-app.get('/get-calculus-question', async (req, res) => {
-    const targetScore = req.query.score; // Assume the score is passed as a query parameter
-
-    if (!targetScore) {
-        return res.status(400).send('Score parameter is required');
-    }
-
+// Endpoint to fetch questions
+app.get('/question2', async (req, res) => {
     try {
-        const result = await sql.query`SELECT * FROM Calculus 
-                                        WHERE Score BETWEEN ${targetScore - 25} AND ${targetScore + 25}`;
-
-        // Assuming you want to return the first row that matches the condition
+        // Modify the query as per your table structure and requirements
+        const result = await sql.query`SELECT * FROM Calculus`;
+        
         if (result.recordset.length > 0) {
-            const questionRow = result.recordset[0];
-
-            // Assign each column value to a variable
-            const question = questionRow.question;
-            const answer1 = questionRow.answer1;
-            const answer2 = questionRow.answer2;
-            const answer3 = questionRow.answer3;
-            const answer4 = questionRow.answer4;
-            const correctAnswer = questionRow.correct_answer;
-            const feedback = questionRow.feedback;
-            const score = questionRow.score;
-
-            // Send back the question data
-            res.json({
-                question,
-                answers: [answer1, answer2, answer3, answer4],
-                correctAnswer,
-                feedback,
-                score
-            });
+            res.json(result.recordset);
         } else {
-            res.status(404).send('No questions found within the score range');
+            res.status(404).send('No questions found');
         }
     } catch (err) {
-        console.error('Database query error:', err);
+        console.error('Error fetching questions:', err);
         res.status(500).send('Internal Server Error');
     }
 });
+
+
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
