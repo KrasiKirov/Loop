@@ -63,4 +63,51 @@ test('GET /questions/next 404s when the subject has no questions', async () => {
   assert.strictEqual(res.status, 404);
 });
 
+test('POST /attempts requires a token', async () => {
+  await resetDb();
+  const res = await request(app).post('/attempts').send({ subject: 'Calculus', questionId: '00000000-0000-0000-0000-000000000000', selectedAnswer: '4' });
+  assert.strictEqual(res.status, 401);
+});
+
+test('POST /attempts grades correctly and updates the rating server-side', async () => {
+  await resetDb();
+  const t = await token();
+  const qid = await seedQuestion({ correctanswer: '4', score: 1000 });
+
+  const correct = await request(app).post('/attempts').set('Authorization', `Bearer ${t}`)
+    .send({ subject: 'Calculus', questionId: qid, selectedAnswer: '4' });
+  assert.strictEqual(correct.status, 200);
+  assert.strictEqual(correct.body.correct, true);
+  assert.strictEqual(correct.body.correctAnswer, '4');
+  assert.strictEqual(correct.body.feedback, 'Basic addition.');
+  assert.ok(correct.body.rating > 1000);
+  assert.ok(correct.body.ratingDelta > 0);
+
+  const r = await request(app).get('/me/ratings/Calculus').set('Authorization', `Bearer ${t}`);
+  assert.strictEqual(r.body.rating, correct.body.rating);
+
+  const cnt = await pool.query('SELECT count(*)::int AS n FROM answers');
+  assert.strictEqual(cnt.rows[0].n, 1);
+});
+
+test('POST /attempts marks a wrong answer and lowers the rating', async () => {
+  await resetDb();
+  const t = await token();
+  const qid = await seedQuestion({ correctanswer: '4', score: 1000 });
+  const wrong = await request(app).post('/attempts').set('Authorization', `Bearer ${t}`)
+    .send({ subject: 'Calculus', questionId: qid, selectedAnswer: '3' });
+  assert.strictEqual(wrong.status, 200);
+  assert.strictEqual(wrong.body.correct, false);
+  assert.strictEqual(wrong.body.correctAnswer, '4');
+  assert.ok(wrong.body.rating < 1000);
+});
+
+test('POST /attempts 404s for an unknown question id', async () => {
+  await resetDb();
+  const t = await token();
+  const res = await request(app).post('/attempts').set('Authorization', `Bearer ${t}`)
+    .send({ subject: 'Calculus', questionId: '00000000-0000-0000-0000-000000000000', selectedAnswer: '4' });
+  assert.strictEqual(res.status, 404);
+});
+
 test.after(() => pool.end());
