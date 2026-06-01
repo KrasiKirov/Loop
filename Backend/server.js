@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const sql = require('mssql/msnodesqlv8');
+const bcrypt = require('bcrypt');
+const SALT_ROUNDS = 10;
 
 const app = express();
 app.use(cors());
@@ -30,22 +32,18 @@ connectToDatabase();
 app.post('/login', async (req, res) => {
     const { username, password } = req.body;
 
-    console.log("Username received:", username);
-    console.log(password)
-
     if (!username || !password) {
         return res.status(400).send('Username and password are required');
     }
 
     try {
-        const result = await sql.query`SELECT Username, Password, Score FROM Users WHERE Username = ${username}`;
+        const result = await sql.query`SELECT Name, Username, Password, Score FROM Users WHERE Username = ${username}`;
         if (!result.recordset.length) {
             return res.status(401).send('Invalid username or password');
         }
 
         const user = result.recordset[0];
-        console.log(user.Password)
-        const validPassword = (password == user.Password);
+        const validPassword = await bcrypt.compare(password, user.Password);
 
         if (!validPassword) {
             return res.status(401).send('Invalid username or password');
@@ -74,7 +72,8 @@ app.post('/signup', async (req, res) => {
         }
 
         // Insert the new user into the database
-        await sql.query`INSERT INTO Users (Name, Username, Password) VALUES (${name}, ${username}, ${password})`;
+        const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+        await sql.query`INSERT INTO Users (Name, Username, Password) VALUES (${name}, ${username}, ${hashedPassword})`;
 
         res.status(201).send('User registered successfully');
     } catch (err) {
@@ -83,11 +82,23 @@ app.post('/signup', async (req, res) => {
     }
 });
 
-// Endpoint to fetch questions
-app.get('/question2', async (req, res) => {
+const VALID_SUBJECTS = [
+    'Calculus', 'DiscreteMath', 'LinearAlgebra', 'Statistics',
+    'Anatomy', 'Microbiology', 'MolecularBiology', 'Physiology',
+    'AnalyticalChemistry', 'Biochemistry', 'InorganicChemistry', 'OrganicChemistry',
+    'Astrophysics', 'Electromagnetics', 'QuantumMechanics', 'Thermodynamics'
+];
+
+app.get('/questions', async (req, res) => {
+    const { subject } = req.query;
+
+    if (!subject || !VALID_SUBJECTS.includes(subject)) {
+        return res.status(400).send('Invalid or missing subject');
+    }
+
     try {
-        const result = await sql.query`SELECT * FROM Calculus`;
-        
+        const result = await sql.query(`SELECT * FROM ${subject}`);
+
         if (result.recordset.length > 0) {
             res.json(result.recordset);
         } else {
@@ -101,6 +112,22 @@ app.get('/question2', async (req, res) => {
 
 
 
+
+app.post('/user/elo', async (req, res) => {
+    const { username, elo } = req.body;
+
+    if (!username || elo === undefined) {
+        return res.status(400).send('Username and elo are required');
+    }
+
+    try {
+        await sql.query`UPDATE Users SET Score = ${elo} WHERE Username = ${username}`;
+        res.status(200).send('ELO updated');
+    } catch (err) {
+        console.error('Error updating ELO:', err);
+        res.status(500).send('Internal Server Error');
+    }
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

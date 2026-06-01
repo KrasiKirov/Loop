@@ -20,7 +20,7 @@ const Question2 = () => {
 
   const [selectedAnswer, setSelectedAnswer] = useState('');
   const [showFeedback, setShowFeedback] = useState(false);
-  const [elo, setUserElo] = useState(15); // Initial User Elo
+  const [elo, setUserElo] = useState(user.elo || 15);
   const [answerSubmitted, setAnswerSubmitted] = useState(false);
   const [answeredQuestionsHistory, setAnsweredQuestionsHistory] = useState([]);
 
@@ -57,20 +57,18 @@ const Question2 = () => {
   const fetchData = async () => {
     const { lowerBound, higherBound } = setInitialBounds(quizSettings.difficulty, elo);
     try {
-      const response = await fetch('http://localhost:3000/question2');
+      const subject = quizSettings.subject || 'Calculus';
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/questions?subject=${subject}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const questionsData = await response.json();
-      console.log(questionsData);
 
       const filteredQuestions = questionsData.filter(
         (item) =>
           item.score >= lowerBound &&
           item.score <= higherBound
       );
-
-      console.log(filteredQuestions);
 
       
 
@@ -129,6 +127,12 @@ const Question2 = () => {
     const updatedUserElo = updateRatings(elo, randomQuestion.score, result, quizSettings.difficulty);
 
     setUserElo(updatedUserElo);
+    setUser({ ...user, elo: updatedUserElo });
+    fetch(`${process.env.REACT_APP_API_URL}/user/elo`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: user.username, elo: updatedUserElo }),
+    }).catch((err) => console.error('Failed to persist ELO:', err));
     setAnswerSubmitted(true);
     setShowFeedback(result ? `Good Job! Your new ELO: ${updatedUserElo}` : 'Wrong Answer: ' + randomQuestion.feedback);
     setAnsweredQuestionsHistory(prev => [...prev, randomQuestion.question]);

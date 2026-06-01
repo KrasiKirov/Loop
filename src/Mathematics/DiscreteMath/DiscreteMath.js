@@ -1,8 +1,17 @@
 import '../Math.css';
 import { Helmet } from 'react-helmet';
-import { Link } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
+import { useQuizSettings } from '../../QuizContext';
 
 const DiscreteMath = () => {
+  const { setQuizSettings } = useQuizSettings();
+  const navigate = useNavigate();
+
+  const handleDifficultySelection = (difficulty) => {
+    setQuizSettings({ subject: 'DiscreteMath', difficulty });
+    navigate('/home/question2');
+  };
+
   return (
     <div>
         <Helmet>
@@ -14,37 +23,26 @@ const DiscreteMath = () => {
             <h1><span className="app-title">Discrete Math</span></h1>
             <p>From simple number theory to complex discrete math.</p>
             <p>Choose a level of difficulty</p>
-
         </div>
         <div className="features-container icon-container">
-
-        <Link to="/home/math/discreteMath/question"> 
-        
-        <div className="feature icon-difficulty">
-            <i class="fas fa-star"></i>
+            <div className="feature icon-difficulty" onClick={() => handleDifficultySelection('easy')} style={{ cursor: 'pointer' }}>
+                <i className="fas fa-star"></i>
                 <h5>Easy question</h5>
             </div>
-        </Link>
-        <Link to="/home/math/discreteMath/question">
-            <div className="feature icon-difficulty">
-            <i class="fas fa-star"></i>
-            <i class="fas fa-star"></i>
+            <div className="feature icon-difficulty" onClick={() => handleDifficultySelection('medium')} style={{ cursor: 'pointer' }}>
+                <i className="fas fa-star"></i>
+                <i className="fas fa-star"></i>
                 <h5>Medium question</h5>
-               
             </div>
-        </Link>
-        <Link to="/home/math/discreteMath/question">
-            <div className="feature icon-difficulty">
-            <i class="fas fa-star"></i>
-            <i class="fas fa-star"></i>
-            <i class="fas fa-star"></i>
+            <div className="feature icon-difficulty" onClick={() => handleDifficultySelection('hard')} style={{ cursor: 'pointer' }}>
+                <i className="fas fa-star"></i>
+                <i className="fas fa-star"></i>
+                <i className="fas fa-star"></i>
                 <h5>Hard question</h5>
-            
             </div>
-        </Link>
         </div>
     </div>
-);
+  );
 };
-  
+
 export default DiscreteMath;
