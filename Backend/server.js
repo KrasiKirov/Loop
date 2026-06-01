@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const pool = require('./db');
+const { authPool, userPool } = require('./db');
 const authRoutes = require('./auth/routes');
 const practiceRoutes = require('./routes/practice');
 const insightsRoutes = require('./routes/insights');
@@ -16,7 +16,7 @@ app.use(practiceRoutes);
 app.use(insightsRoutes);
 
 if (require.main === module) {
-  pool.connect()
+  Promise.all([authPool.query('SELECT 1'), userPool.query('SELECT 1')])
     .then(() => console.log('Connected to PostgreSQL database.'))
     .catch((err) => console.error('Could not connect to the database:', err));
   const PORT = process.env.PORT || 3000;

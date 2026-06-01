@@ -1,6 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const pool = require('../db');
+const { authPool } = require('../db');
 const {
   signAccessToken, createRefreshToken, rotateRefreshToken, revokeRefreshToken,
 } = require('./tokens');
@@ -26,10 +26,10 @@ router.post('/signup', async (req, res) => {
     return res.status(400).json({ error: 'Name, username, and password are required' });
   }
   try {
-    const exists = await pool.query('SELECT 1 FROM users WHERE username = $1', [username]);
+    const exists = await authPool.query('SELECT 1 FROM users WHERE username = $1', [username]);
     if (exists.rows.length) return res.status(400).json({ error: 'User already exists' });
     const hash = await bcrypt.hash(password, SALT_ROUNDS);
-    const { rows } = await pool.query(
+    const { rows } = await authPool.query(
       'INSERT INTO users (name, username, password) VALUES ($1,$2,$3) RETURNING id, name, username',
       [name, username, hash]
     );
@@ -48,7 +48,7 @@ router.post('/login', async (req, res) => {
     return res.status(400).json({ error: 'Username and password are required' });
   }
   try {
-    const { rows } = await pool.query(
+    const { rows } = await authPool.query(
       'SELECT id, name, username, password FROM users WHERE username = $1',
       [username]
     );
@@ -72,7 +72,7 @@ router.post('/refresh', async (req, res) => {
   if (!refreshToken) return res.status(400).json({ error: 'refreshToken is required' });
   try {
     const { userId, newRefreshToken } = await rotateRefreshToken(refreshToken);
-    const { rows } = await pool.query('SELECT id, username FROM users WHERE id = $1', [userId]);
+    const { rows } = await authPool.query('SELECT id, username FROM users WHERE id = $1', [userId]);
     res.json({ accessToken: signAccessToken(rows[0]), refreshToken: newRefreshToken });
   } catch (err) {
     if (['INVALID', 'EXPIRED', 'REUSE'].includes(err.code)) {
