@@ -40,6 +40,13 @@ test('login succeeds with correct password, 401 with wrong', async () => {
   assert.strictEqual(bad.status, 401);
 });
 
+test('login with an unknown user returns 401 (no enumeration)', async () => {
+  await resetDb();
+  const res = await request(app).post('/auth/login').send({ username: 'ghost', password: 'pw' });
+  assert.strictEqual(res.status, 401);
+  assert.strictEqual(res.body.error, 'Invalid username or password');
+});
+
 test('refresh rotates; old refresh token then 401s', async () => {
   await resetDb();
   const { body } = await signup();

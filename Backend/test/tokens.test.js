@@ -49,4 +49,16 @@ test('revoke makes a token unusable', async () => {
   await assert.rejects(() => rotateRefreshToken(raw), (e) => e.code === 'REUSE');
 });
 
+test('concurrent rotation of the same token: exactly one wins', async () => {
+  await resetDb();
+  const user = await makeUser();
+  const raw = await createRefreshToken(user.id);
+  const results = await Promise.allSettled([rotateRefreshToken(raw), rotateRefreshToken(raw)]);
+  const fulfilled = results.filter((r) => r.status === 'fulfilled');
+  const rejected = results.filter((r) => r.status === 'rejected');
+  assert.strictEqual(fulfilled.length, 1);
+  assert.strictEqual(rejected.length, 1);
+  assert.strictEqual(rejected[0].reason.code, 'REUSE');
+});
+
 test.after(() => pool.end());

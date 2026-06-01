@@ -11,7 +11,12 @@ export const clearAuth = () => {
   localStorage.removeItem('user');
 };
 
-const refreshTokens = async () => {
+// Single-flight: concurrent 401s share one in-flight refresh so the rotating
+// refresh token is only spent once (a second call would use an already-rotated
+// token and fail).
+let refreshPromise = null;
+
+const doRefresh = async () => {
   const refreshToken = localStorage.getItem('refreshToken');
   if (!refreshToken) return false;
   const res = await fetch(`${API_URL}/auth/refresh`, {
@@ -22,6 +27,15 @@ const refreshTokens = async () => {
   if (!res.ok) return false;
   setTokens(await res.json());
   return true;
+};
+
+const refreshTokens = () => {
+  if (!refreshPromise) {
+    refreshPromise = doRefresh().finally(() => {
+      refreshPromise = null;
+    });
+  }
+  return refreshPromise;
 };
 
 export const apiFetch = async (path, options = {}, retry = true) => {
