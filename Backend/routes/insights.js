@@ -65,10 +65,10 @@ router.get('/leaderboard/:subject', requireAuth, async (req, res) => {
   }
   try {
     const topQ = await pool.query(
-      `SELECT u.username, r.rating
-         FROM user_ratings r JOIN users u ON u.id = r.user_id
-        WHERE r.subject = $1
-        ORDER BY r.rating DESC, u.username ASC
+      `SELECT username, rating
+         FROM user_ratings
+        WHERE subject = $1
+        ORDER BY rating DESC, username ASC
         LIMIT 20`,
       [subject]
     );

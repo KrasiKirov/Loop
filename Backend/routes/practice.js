@@ -92,11 +92,11 @@ router.post('/attempts', requireAuth, async (req, res) => {
     const newRating = updateRatings(current, q.score, correct ? 1 : 0);
 
     await client.query(
-      `INSERT INTO user_ratings (user_id, subject, rating, updated_at)
-         VALUES ($1, $2, $3, NOW())
+      `INSERT INTO user_ratings (user_id, subject, rating, username, updated_at)
+         VALUES ($1, $2, $3, $4, NOW())
          ON CONFLICT (user_id, subject)
          DO UPDATE SET rating = EXCLUDED.rating, updated_at = NOW()`,
-      [req.user.id, subject, newRating]
+      [req.user.id, subject, newRating, req.user.username]
     );
     await client.query(
       `INSERT INTO answers (user_id, subject, is_correct, question_score, rating_after)

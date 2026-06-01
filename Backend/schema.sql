@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS user_ratings (
     user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     subject    VARCHAR(100) NOT NULL,
     rating     INTEGER NOT NULL,
+    username   VARCHAR(255) NOT NULL,
     updated_at TIMESTAMP DEFAULT NOW(),
     UNIQUE (user_id, subject)
 );

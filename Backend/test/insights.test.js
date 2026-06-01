@@ -21,8 +21,8 @@ async function recordAnswer(username, subject, isCorrect, questionScore, ratingA
 }
 async function setRating(username, subject, rating) {
   await pool.query(
-    `INSERT INTO user_ratings (user_id, subject, rating)
-       SELECT id, $2, $3 FROM users WHERE username = $1
+    `INSERT INTO user_ratings (user_id, subject, rating, username)
+       SELECT id, $2, $3, $1::varchar FROM users WHERE username = $1
        ON CONFLICT (user_id, subject) DO UPDATE SET rating = EXCLUDED.rating`,
     [username, subject, rating]
   );
