@@ -6,7 +6,7 @@ import { useUser } from '../UserContext';
 
 const Question2 = () => {
   const { quizSettings, setQuizSettings } = useQuizSettings();
-  const { user } = useUser();
+  const { user, setUser } = useUser();
 
   const [randomQuestion, setRandomQuestion] = useState({
     question: '',
@@ -124,7 +124,7 @@ const Question2 = () => {
     }
 
     const result = selectedAnswer === randomQuestion.correctAnswer ? 1 : 0;
-    const updatedUserElo = updateRatings(elo, randomQuestion.score, result, quizSettings.difficulty);
+    const updatedUserElo = Math.round(updateRatings(elo, randomQuestion.score, result, quizSettings.difficulty));
 
     setUserElo(updatedUserElo);
     setUser({ ...user, elo: updatedUserElo });
