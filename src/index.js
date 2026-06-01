@@ -4,6 +4,8 @@ import { QuizProvider } from './QuizContext';
 
 import Quiz from './pages/Quiz';
 import NoQuestions from './pages/no-questions';
+import UserStats from './pages/Stats';
+import LeaderboardPage from './pages/Leaderboard';
 
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -81,6 +83,8 @@ export default function App() {
 
                 <Route path="/home/quiz" element={<Quiz />} />
                 <Route path="/home/no-questions" element={<NoQuestions />} />
+                <Route path="/home/leaderboard" element={<LeaderboardPage />} />
+                <Route path="/home/stats" element={<UserStats />} />
               </Route>
             </Route>
 

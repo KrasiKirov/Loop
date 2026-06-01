@@ -67,3 +67,32 @@
     display: none;
   }
 }
+
+.navbar-links {
+  display: flex;
+  gap: var(--space-4);
+  margin-right: auto;
+  margin-left: var(--space-8);
+}
+
+.navbar-link {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: color var(--dur) var(--ease);
+}
+
+.navbar-link:hover {
+  color: var(--text);
+}
+
+.navbar-link.active {
+  color: var(--accent);
+}
+
+@media (max-width: 600px) {
+  .navbar-links {
+    margin-left: var(--space-4);
+    gap: var(--space-3);
+  }
+}

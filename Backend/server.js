@@ -6,6 +6,7 @@ const pool = require('./db');
 const requireAuth = require('./middleware/requireAuth');
 const authRoutes = require('./auth/routes');
 const practiceRoutes = require('./routes/practice');
+const insightsRoutes = require('./routes/insights');
 
 const app = express();
 app.use(cors());
@@ -13,6 +14,7 @@ app.use(bodyParser.json());
 
 app.use('/auth', authRoutes);
 app.use(practiceRoutes);
+app.use(insightsRoutes);
 
 const VALID_SUBJECTS = require('./subjects');
 
