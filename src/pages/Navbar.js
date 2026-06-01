@@ -19,6 +19,11 @@ function Navbar() {
           Bold<span className="brand-dot">.</span>
         </NavLink>
 
+        <div className="navbar-links">
+          <NavLink className="navbar-link" to="/home/leaderboard">Leaderboard</NavLink>
+          <NavLink className="navbar-link" to="/home/stats">Profile</NavLink>
+        </div>
+
         <div className="navbar-right">
           {user && user.username && (
             <span className="navbar-user">{user.username}</span>
