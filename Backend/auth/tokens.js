@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
-const pool = require('../db');
+const { authPool } = require('../db');
 
 // Fail fast in production if the signing secret is missing; allow a dev fallback otherwise.
 const ACCESS_SECRET = (() => {
@@ -24,7 +24,7 @@ const hashToken = (token) => crypto.createHash('sha256').update(token).digest('h
 const createRefreshToken = async (userId) => {
   const raw = crypto.randomBytes(32).toString('hex');
   const expiresAt = new Date(Date.now() + REFRESH_TTL_DAYS * 24 * 60 * 60 * 1000);
-  await pool.query(
+  await authPool.query(
     'INSERT INTO refresh_tokens (user_id, token_hash, expires_at) VALUES ($1, $2, $3)',
     [userId, hashToken(raw), expiresAt]
   );
@@ -47,7 +47,7 @@ const fail = (code) => {
 const rotateRefreshToken = async (raw) => {
   const tokenHash = hashToken(raw);
 
-  const claim = await pool.query(
+  const claim = await authPool.query(
     `UPDATE refresh_tokens SET revoked = TRUE
        WHERE token_hash = $1 AND revoked = FALSE AND expires_at > NOW()
        RETURNING user_id`,
@@ -61,17 +61,17 @@ const rotateRefreshToken = async (raw) => {
   }
 
   // Claim failed — determine why for correct error semantics + reuse detection.
-  const { rows } = await pool.query('SELECT * FROM refresh_tokens WHERE token_hash = $1', [tokenHash]);
+  const { rows } = await authPool.query('SELECT * FROM refresh_tokens WHERE token_hash = $1', [tokenHash]);
   const row = rows[0];
   if (!row) throw fail('INVALID');
   if (new Date(row.expires_at) < new Date()) throw fail('EXPIRED');
   // Row exists, not expired, but already revoked => reuse (or lost the race). Revoke the family.
-  await pool.query('UPDATE refresh_tokens SET revoked = TRUE WHERE user_id = $1', [row.user_id]);
+  await authPool.query('UPDATE refresh_tokens SET revoked = TRUE WHERE user_id = $1', [row.user_id]);
   throw fail('REUSE');
 };
 
 const revokeRefreshToken = async (raw) => {
-  await pool.query('UPDATE refresh_tokens SET revoked = TRUE WHERE token_hash = $1', [hashToken(raw)]);
+  await authPool.query('UPDATE refresh_tokens SET revoked = TRUE WHERE token_hash = $1', [hashToken(raw)]);
 };
 
 module.exports = {

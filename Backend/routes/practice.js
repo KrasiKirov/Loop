@@ -1,10 +1,10 @@
 const express = require('express');
-const pool = require('../db');
+const { userPool, withUserContext } = require('../db');
 const requireAuth = require('../middleware/requireAuth');
 const VALID_SUBJECTS = require('../subjects');
+const { BASE_RATING, getBounds, updateRatings } = require('../elo');
 
 const router = express.Router();
-const BASE_RATING = 1000;
 
 router.get('/me/ratings/:subject', requireAuth, async (req, res) => {
   const { subject } = req.params;
@@ -12,7 +12,7 @@ router.get('/me/ratings/:subject', requireAuth, async (req, res) => {
     return res.status(400).json({ error: 'Invalid subject' });
   }
   try {
-    const { rows } = await pool.query(
+    const { rows } = await userPool.query(
       'SELECT rating FROM user_ratings WHERE user_id = $1 AND subject = $2',
       [req.user.id, subject]
     );
@@ -23,39 +23,106 @@ router.get('/me/ratings/:subject', requireAuth, async (req, res) => {
   }
 });
 
-router.post('/answers', requireAuth, async (req, res) => {
-  const { subject, isCorrect, questionScore, rating } = req.body;
-  if (
-    !VALID_SUBJECTS.includes(subject) ||
-    isCorrect === undefined ||
-    questionScore === undefined ||
-    rating === undefined
-  ) {
-    return res.status(400).json({ error: 'subject, isCorrect, questionScore, rating are required' });
+router.get('/questions/next', requireAuth, async (req, res) => {
+  const { subject, difficulty } = req.query;
+  if (!VALID_SUBJECTS.includes(subject)) {
+    return res.status(400).json({ error: 'Invalid subject' });
   }
-  const client = await pool.connect();
   try {
-    await client.query('BEGIN');
-    await client.query(
-      `INSERT INTO user_ratings (user_id, subject, rating, updated_at)
-         VALUES ($1, $2, $3, NOW())
-         ON CONFLICT (user_id, subject)
-         DO UPDATE SET rating = EXCLUDED.rating, updated_at = NOW()`,
-      [req.user.id, subject, rating]
+    const ratingQ = await userPool.query(
+      'SELECT rating FROM user_ratings WHERE user_id = $1 AND subject = $2',
+      [req.user.id, subject]
     );
-    await client.query(
-      `INSERT INTO answers (user_id, subject, is_correct, question_score, rating_after)
-         VALUES ($1, $2, $3, $4, $5)`,
-      [req.user.id, subject, isCorrect, questionScore, rating]
+    const elo = ratingQ.rows.length ? ratingQ.rows[0].rating : BASE_RATING;
+    const { lower, upper } = getBounds(difficulty, elo);
+    const table = subject.toLowerCase();
+
+    let pick = await userPool.query(
+      `SELECT id, question, answer1, answer2, answer3, answer4, score, subject
+         FROM ${table} WHERE score >= $1 AND score <= $2 ORDER BY random() LIMIT 1`,
+      [lower, upper]
     );
-    await client.query('COMMIT');
-    res.status(200).json({ ok: true });
+    if (!pick.rows.length) {
+      pick = await userPool.query(
+        `SELECT id, question, answer1, answer2, answer3, answer4, score, subject
+           FROM ${table} ORDER BY random() LIMIT 1`
+      );
+    }
+    if (!pick.rows.length) return res.status(404).json({ error: 'No questions found' });
+
+    const q = pick.rows[0];
+    res.json({
+      id: q.id,
+      question: q.question,
+      answers: [q.answer1, q.answer2, q.answer3, q.answer4],
+      score: q.score,
+      subject: q.subject,
+    });
   } catch (err) {
-    await client.query('ROLLBACK');
-    console.error('Error recording answer:', err);
+    console.error('Error fetching next question:', err);
     res.status(500).json({ error: 'Internal Server Error' });
-  } finally {
-    client.release();
+  }
+});
+
+router.post('/attempts', requireAuth, async (req, res) => {
+  const { subject, questionId, selectedAnswer } = req.body;
+  if (!VALID_SUBJECTS.includes(subject) || !questionId || selectedAnswer === undefined) {
+    return res.status(400).json({ error: 'subject, questionId, selectedAnswer are required' });
+  }
+  const table = subject.toLowerCase();
+  try {
+    const out = await withUserContext(req.user.id, async (client) => {
+      const qres = await client.query(
+        `SELECT correctanswer, feedback, score FROM ${table} WHERE id = $1`,
+        [questionId]
+      );
+      if (!qres.rows.length) return { notFound: true };
+      const q = qres.rows[0];
+      const correct = selectedAnswer === q.correctanswer;
+
+      const ratingQ = await client.query(
+        'SELECT rating FROM user_ratings WHERE user_id = $1 AND subject = $2',
+        [req.user.id, subject]
+      );
+      const current = ratingQ.rows.length ? ratingQ.rows[0].rating : BASE_RATING;
+      const newRating = updateRatings(current, q.score, correct ? 1 : 0);
+
+      // Only the FIRST attempt at a question is rated. The UNIQUE(user_id, question_id)
+      // constraint makes this atomic: under concurrent submissions the DB lets exactly one
+      // insert win; the rest get DO NOTHING and leave the rating untouched (no replay farming).
+      const ins = await client.query(
+        `INSERT INTO answers (user_id, subject, is_correct, question_score, rating_after, question_id)
+           VALUES ($1, $2, $3, $4, $5, $6)
+           ON CONFLICT (user_id, question_id) DO NOTHING
+           RETURNING id`,
+        [req.user.id, subject, correct, q.score, newRating, questionId]
+      );
+      const firstAttempt = ins.rows.length > 0;
+
+      if (firstAttempt) {
+        await client.query(
+          `INSERT INTO user_ratings (user_id, subject, rating, username, updated_at)
+             VALUES ($1, $2, $3, $4, NOW())
+             ON CONFLICT (user_id, subject)
+             DO UPDATE SET rating = EXCLUDED.rating, updated_at = NOW()`,
+          [req.user.id, subject, newRating, req.user.username]
+        );
+      }
+
+      return {
+        correct,
+        correctAnswer: q.correctanswer,
+        feedback: q.feedback,
+        rating: firstAttempt ? newRating : current,
+        ratingDelta: firstAttempt ? newRating - current : 0,
+        alreadyAnswered: !firstAttempt,
+      };
+    });
+    if (out.notFound) return res.status(404).json({ error: 'Question not found' });
+    res.json(out);
+  } catch (err) {
+    console.error('Error recording attempt:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 

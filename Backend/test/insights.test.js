@@ -9,8 +9,23 @@ async function signup(username) {
   const res = await request(app).post('/auth/signup').send({ name: 'N', username, password: 'pw' });
   return res.body.accessToken;
 }
-function answer(t, body) {
-  return request(app).post('/answers').set('Authorization', `Bearer ${t}`).send(body);
+// Seed answer history directly. clock_timestamp() advances on every call, so
+// inserted order is preserved for the trend assertion (UUID ids can't be used
+// as a chronological tiebreaker).
+async function recordAnswer(username, subject, isCorrect, questionScore, ratingAfter) {
+  await pool.query(
+    `INSERT INTO answers (user_id, subject, is_correct, question_score, rating_after, created_at)
+       SELECT id, $2, $3, $4, $5, clock_timestamp() FROM users WHERE username = $1`,
+    [username, subject, isCorrect, questionScore, ratingAfter]
+  );
+}
+async function setRating(username, subject, rating) {
+  await pool.query(
+    `INSERT INTO user_ratings (user_id, subject, rating, username)
+       SELECT id, $2, $3, $1::varchar FROM users WHERE username = $1
+       ON CONFLICT (user_id, subject) DO UPDATE SET rating = EXCLUDED.rating`,
+    [username, subject, rating]
+  );
 }
 
 test('GET /me/stats requires a token', async () => {
@@ -30,9 +45,11 @@ test('GET /me/stats returns empty shape for a fresh user', async () => {
 test('GET /me/stats aggregates per subject + overall, with chronological trend', async () => {
   await resetDb();
   const t = await signup('learner');
-  await answer(t, { subject: 'Calculus', isCorrect: true, questionScore: 800, rating: 1010 });
-  await answer(t, { subject: 'Calculus', isCorrect: false, questionScore: 820, rating: 1002 });
-  await answer(t, { subject: 'Anatomy', isCorrect: true, questionScore: 700, rating: 1009 });
+  await recordAnswer('learner', 'Calculus', true, 800, 1010);
+  await recordAnswer('learner', 'Calculus', false, 820, 1002);
+  await setRating('learner', 'Calculus', 1002);
+  await recordAnswer('learner', 'Anatomy', true, 700, 1009);
+  await setRating('learner', 'Anatomy', 1009);
 
   const res = await request(app).get('/me/stats').set('Authorization', `Bearer ${t}`);
   assert.strictEqual(res.status, 200);
@@ -48,12 +65,12 @@ test('GET /me/stats aggregates per subject + overall, with chronological trend',
 
 test('GET /leaderboard ranks by rating, computes my rank, 400 invalid, null when unplayed', async () => {
   await resetDb();
-  const a = await signup('alice');
+  await signup('alice');
   const b = await signup('bob');
-  const c = await signup('carol');
-  await answer(a, { subject: 'Calculus', isCorrect: true, questionScore: 800, rating: 1300 });
-  await answer(b, { subject: 'Calculus', isCorrect: true, questionScore: 800, rating: 1100 });
-  await answer(c, { subject: 'Calculus', isCorrect: true, questionScore: 800, rating: 1200 });
+  await signup('carol');
+  await setRating('alice', 'Calculus', 1300);
+  await setRating('bob', 'Calculus', 1100);
+  await setRating('carol', 'Calculus', 1200);
 
   const res = await request(app).get('/leaderboard/Calculus').set('Authorization', `Bearer ${b}`);
   assert.strictEqual(res.status, 200);
