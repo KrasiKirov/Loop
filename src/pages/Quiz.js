@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import './Quiz.css';
 import { updateRatings, BASE_RATING } from './elo';
 import { useQuizSettings } from '../QuizContext';
-import { useUser } from '../UserContext';
+import { useUser } from '../AuthContext';
+import { apiFetch } from '../api/client';
 
 const EMPTY_QUESTION = {
   question: '',
@@ -51,7 +52,7 @@ const Quiz = () => {
     const { lower, upper } = getBounds(difficulty, elo);
     try {
       const subject = quizSettings.subject || 'Calculus';
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/questions?subject=${subject}`);
+      const response = await apiFetch(`/questions?subject=${subject}`);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const data = await response.json();
 
@@ -105,10 +106,9 @@ const Quiz = () => {
     setAnswerSubmitted(true);
     setUser({ ...user, elo: updatedElo });
 
-    fetch(`${process.env.REACT_APP_API_URL}/user/elo`, {
+    apiFetch('/user/elo', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: user.username, elo: updatedElo }),
+      body: { elo: updatedElo },
     }).catch((err) => console.error('Failed to persist ELO:', err));
   };
 

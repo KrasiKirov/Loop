@@ -9,6 +9,16 @@ CREATE TABLE IF NOT EXISTS users (
     score    INTEGER DEFAULT 1000
 );
 
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+    id         SERIAL PRIMARY KEY,
+    user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token_hash VARCHAR(64) NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    revoked    BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_refresh_user ON refresh_tokens(user_id);
+
 -- All subject tables share the same structure.
 -- Table names are lowercase; the app sends e.g. "Calculus" and we lowercase it before querying.
 

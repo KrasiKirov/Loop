@@ -1,14 +1,14 @@
 import React from 'react';
-import { useUser } from '../UserContext';
+import { useUser } from '../AuthContext';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import '../Navbar.css';
 
 function Navbar() {
-  const { user, setUser } = useUser();
+  const { user, logout } = useUser();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    setUser({});
+  const handleLogout = async () => {
+    await logout();
     navigate('/login');
   };
 

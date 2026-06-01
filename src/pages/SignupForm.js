@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import './auth.css';
+import { useUser } from '../AuthContext';
 
 function SignupForm() {
     const [name, setName] = useState('');
@@ -9,29 +10,15 @@ function SignupForm() {
     const [message, setMessage] = useState('');
 
     const navigate = useNavigate();
+    const { signup } = useUser();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        // Send a POST request to the server for signup
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL}/signup`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ name, username, password }),
-            });
-
-            if (response.ok) {
-                setMessage('Signup successful');
-                navigate('/login'); // Redirect to login page after successful signup
-            } else {
-                setMessage('Signup failed');
-            }
+            await signup(name, username, password);
+            navigate('/home');
         } catch (error) {
-            console.error('Error:', error);
-            setMessage('An error occurred during signup');
+            setMessage(error.message || 'Signup failed');
         }
     };
 
