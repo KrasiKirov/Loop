@@ -20,7 +20,6 @@ test('signup returns a token pair + user', async () => {
   assert.ok(res.body.accessToken);
   assert.ok(res.body.refreshToken);
   assert.strictEqual(res.body.user.username, 'amy');
-  assert.strictEqual(res.body.user.elo, 1000);
 });
 
 test('signup rejects a duplicate username', async () => {

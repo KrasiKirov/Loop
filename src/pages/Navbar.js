@@ -20,9 +20,6 @@ function Navbar() {
         </NavLink>
 
         <div className="navbar-right">
-          {user && user.elo !== undefined && (
-            <span className="navbar-elo">ELO {user.elo}</span>
-          )}
           {user && user.username && (
             <span className="navbar-user">{user.username}</span>
           )}

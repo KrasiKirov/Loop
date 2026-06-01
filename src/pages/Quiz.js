@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import './Quiz.css';
 import { updateRatings, BASE_RATING } from './elo';
 import { useQuizSettings } from '../QuizContext';
-import { useUser } from '../AuthContext';
 import { apiFetch } from '../api/client';
 
 const EMPTY_QUESTION = {
@@ -17,14 +16,13 @@ const EMPTY_QUESTION = {
 
 const Quiz = () => {
   const { quizSettings, setQuizSettings } = useQuizSettings();
-  const { user, setUser } = useUser();
   const navigate = useNavigate();
 
   const [question, setQuestion] = useState(EMPTY_QUESTION);
   const [selectedAnswer, setSelectedAnswer] = useState('');
   const [answerSubmitted, setAnswerSubmitted] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
-  const [elo, setElo] = useState(user.elo || BASE_RATING);
+  const [elo, setElo] = useState(BASE_RATING);
   const [eloDelta, setEloDelta] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -44,12 +42,12 @@ const Quiz = () => {
 
   // Loads a fresh question. `difficulty` overrides the stored difficulty so the
   // post-answer "Easier/Harder" controls take effect immediately.
-  const loadQuestion = async (difficulty = quizSettings.difficulty) => {
+  const loadQuestion = async (difficulty = quizSettings.difficulty, currentElo = elo) => {
     setLoading(true);
     if (difficulty !== quizSettings.difficulty) {
       setQuizSettings((prev) => ({ ...prev, difficulty }));
     }
-    const { lower, upper } = getBounds(difficulty, elo);
+    const { lower, upper } = getBounds(difficulty, currentElo);
     try {
       const subject = quizSettings.subject || 'Calculus';
       const response = await apiFetch(`/questions?subject=${subject}`);
@@ -83,9 +81,24 @@ const Quiz = () => {
     }
   };
 
-  // Load the first question on mount.
+  // On mount: load this subject's saved rating, then the first question.
   useEffect(() => {
-    loadQuestion();
+    const init = async () => {
+      const subject = quizSettings.subject || 'Calculus';
+      let rating = BASE_RATING;
+      try {
+        const res = await apiFetch(`/me/ratings/${subject}`);
+        if (res.ok) {
+          const data = await res.json();
+          rating = data.rating ?? BASE_RATING;
+          setElo(rating);
+        }
+      } catch (err) {
+        console.error('Failed to load rating:', err);
+      }
+      await loadQuestion(quizSettings.difficulty, rating);
+    };
+    init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -104,12 +117,17 @@ const Quiz = () => {
     setEloDelta(updatedElo - elo);
     setElo(updatedElo);
     setAnswerSubmitted(true);
-    setUser({ ...user, elo: updatedElo });
 
-    apiFetch('/user/elo', {
+    const subject = quizSettings.subject || question.subject;
+    apiFetch('/answers', {
       method: 'POST',
-      body: { elo: updatedElo },
-    }).catch((err) => console.error('Failed to persist ELO:', err));
+      body: {
+        subject,
+        isCorrect: result === 1,
+        questionScore: question.score,
+        rating: updatedElo,
+      },
+    }).catch((err) => console.error('Failed to record answer:', err));
   };
 
   const answerClass = (answer) => {
