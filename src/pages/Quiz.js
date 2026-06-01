@@ -1,167 +1,102 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Quiz.css';
-import { updateRatings, BASE_RATING } from './elo';
 import { useQuizSettings } from '../QuizContext';
 import { apiFetch } from '../api/client';
 
-const EMPTY_QUESTION = {
-  question: '',
-  answers: [],
-  correctAnswer: '',
-  feedback: '',
-  score: 0,
-  subject: '',
-};
+const BASE_RATING = 1000;
+const EMPTY = { id: '', question: '', answers: [], score: 0, subject: '' };
 
 const Quiz = () => {
   const { quizSettings, setQuizSettings } = useQuizSettings();
   const navigate = useNavigate();
 
-  const [question, setQuestion] = useState(EMPTY_QUESTION);
+  const [question, setQuestion] = useState(EMPTY);
   const [selectedAnswer, setSelectedAnswer] = useState('');
-  const [answerSubmitted, setAnswerSubmitted] = useState(false);
-  const [isCorrect, setIsCorrect] = useState(false);
-  const [elo, setElo] = useState(BASE_RATING);
-  const [eloDelta, setEloDelta] = useState(0);
+  const [result, setResult] = useState(null); // { correct, correctAnswer, feedback }
+  const [rating, setRating] = useState(BASE_RATING);
+  const [ratingDelta, setRatingDelta] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  const getBounds = (difficulty, currentElo) => {
-    const m = 0.2;
-    switch (difficulty) {
-      case 'easy':
-        return { lower: currentElo - Math.round(currentElo * 2 * m), upper: currentElo };
-      case 'medium':
-        return { lower: Math.round(currentElo - currentElo * m), upper: Math.round(currentElo + currentElo * m) };
-      case 'hard':
-        return { lower: currentElo, upper: Math.round(currentElo + currentElo * m * 2) };
-      default:
-        return { lower: 0, upper: 100000 };
-    }
-  };
+  const subject = quizSettings.subject || 'Calculus';
 
-  // Loads a fresh question. `difficulty` overrides the stored difficulty so the
-  // post-answer "Easier/Harder" controls take effect immediately.
-  const loadQuestion = async (difficulty = quizSettings.difficulty, currentElo = elo) => {
+  const loadQuestion = async (difficulty = quizSettings.difficulty) => {
     setLoading(true);
     if (difficulty !== quizSettings.difficulty) {
       setQuizSettings((prev) => ({ ...prev, difficulty }));
     }
-    const { lower, upper } = getBounds(difficulty, currentElo);
     try {
-      const subject = quizSettings.subject || 'Calculus';
-      const response = await apiFetch(`/questions?subject=${subject}`);
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      const data = await response.json();
-
-      const inRange = data.filter((q) => q.score >= lower && q.score <= upper);
-      const pool = inRange.length > 0 ? inRange : data;
-
-      if (pool.length === 0) {
-        navigate('/home/no-questions');
-        return;
-      }
-
-      const picked = pool[Math.floor(Math.random() * pool.length)];
-      setQuestion({
-        question: picked.question,
-        answers: [picked.answer1, picked.answer2, picked.answer3, picked.answer4],
-        correctAnswer: picked.correctAnswer,
-        feedback: picked.feedback,
-        score: picked.score,
-        subject: picked.subject,
-      });
+      const res = await apiFetch(`/questions/next?subject=${subject}&difficulty=${difficulty || 'medium'}`);
+      if (res.status === 404) { navigate('/home/no-questions'); return; }
+      if (!res.ok) throw new Error('failed');
+      const q = await res.json();
+      setQuestion(q);
       setSelectedAnswer('');
-      setAnswerSubmitted(false);
-      setIsCorrect(false);
+      setResult(null);
       setLoading(false);
-    } catch (error) {
-      console.error('Error fetching questions:', error);
+    } catch (err) {
+      console.error('Error fetching question:', err);
       setLoading(false);
     }
   };
 
-  // On mount: load this subject's saved rating, then the first question.
   useEffect(() => {
     const init = async () => {
-      const subject = quizSettings.subject || 'Calculus';
-      let rating = BASE_RATING;
       try {
-        const res = await apiFetch(`/me/ratings/${subject}`);
-        if (res.ok) {
-          const data = await res.json();
-          rating = data.rating ?? BASE_RATING;
-          setElo(rating);
-        }
-      } catch (err) {
-        console.error('Failed to load rating:', err);
-      }
-      await loadQuestion(quizSettings.difficulty, rating);
+        const r = await apiFetch(`/me/ratings/${subject}`);
+        if (r.ok) setRating((await r.json()).rating);
+      } catch (err) { /* display only */ }
+      await loadQuestion(quizSettings.difficulty);
     };
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSelect = (answer) => {
-    if (answerSubmitted) return;
+    if (result) return;
     setSelectedAnswer(answer);
   };
 
-  const handleSubmit = () => {
-    if (!selectedAnswer || answerSubmitted) return;
-
-    const result = selectedAnswer === question.correctAnswer ? 1 : 0;
-    const updatedElo = updateRatings(elo, question.score, result);
-
-    setIsCorrect(result === 1);
-    setEloDelta(updatedElo - elo);
-    setElo(updatedElo);
-    setAnswerSubmitted(true);
-
-    const subject = quizSettings.subject || question.subject;
-    apiFetch('/answers', {
-      method: 'POST',
-      body: {
-        subject,
-        isCorrect: result === 1,
-        questionScore: question.score,
-        rating: updatedElo,
-      },
-    }).catch((err) => console.error('Failed to record answer:', err));
+  const handleSubmit = async () => {
+    if (!selectedAnswer || result) return;
+    try {
+      const res = await apiFetch('/attempts', {
+        method: 'POST',
+        body: { subject, questionId: question.id, selectedAnswer },
+      });
+      if (!res.ok) throw new Error('failed');
+      const data = await res.json();
+      setResult({ correct: data.correct, correctAnswer: data.correctAnswer, feedback: data.feedback });
+      setRating(data.rating);
+      setRatingDelta(data.ratingDelta);
+    } catch (err) {
+      console.error('Error submitting answer:', err);
+    }
   };
 
   const answerClass = (answer) => {
-    if (!answerSubmitted) {
-      return selectedAnswer === answer ? 'answer selected' : 'answer';
-    }
-    if (answer === question.correctAnswer) return 'answer correct';
+    if (!result) return selectedAnswer === answer ? 'answer selected' : 'answer';
+    if (answer === result.correctAnswer) return 'answer correct';
     if (answer === selectedAnswer) return 'answer wrong';
     return 'answer';
   };
 
-  // ELO progress within the current 100-point band (purely visual).
-  const bandProgress = Math.max(0, Math.min(100, elo % 100));
+  const bandProgress = Math.max(0, Math.min(100, rating % 100));
 
   if (loading) {
-    return (
-      <div className="quiz">
-        <div className="quiz-loading">Loading question…</div>
-      </div>
-    );
+    return <div className="quiz"><div className="quiz-loading">Loading question…</div></div>;
   }
 
   return (
     <div className="quiz">
       <div className="quiz-topbar">
-        <span className="subject-chip">{question.subject || quizSettings.subject}</span>
+        <span className="subject-chip">{question.subject || subject}</span>
         <div className="elo-meter">
           <div className="elo-meter-head">
             <span className="elo-label">Your ELO</span>
-            <span className="elo-value">{elo}</span>
+            <span className="elo-value">{rating}</span>
           </div>
-          <div className="elo-bar">
-            <div className="elo-bar-fill" style={{ width: `${bandProgress}%` }} />
-          </div>
+          <div className="elo-bar"><div className="elo-bar-fill" style={{ width: `${bandProgress}%` }} /></div>
         </div>
         <span className="level-chip">Level {question.score}</span>
       </div>
@@ -170,43 +105,32 @@ const Quiz = () => {
 
       <div className="answers">
         {question.answers.map((answer, index) => (
-          <button
-            key={index}
-            className={answerClass(answer)}
-            onClick={() => handleSelect(answer)}
-            disabled={answerSubmitted}
-          >
+          <button key={index} className={answerClass(answer)} onClick={() => handleSelect(answer)} disabled={!!result}>
             {answer}
           </button>
         ))}
       </div>
 
-      {answerSubmitted && (
-        <div className={`feedback ${isCorrect ? 'feedback-correct' : 'feedback-wrong'}`}>
+      {result && (
+        <div className={`feedback ${result.correct ? 'feedback-correct' : 'feedback-wrong'}`}>
           <div className="feedback-head">
-            <strong>{isCorrect ? 'Correct' : 'Incorrect'}</strong>
-            <span className="elo-delta">{eloDelta >= 0 ? `+${eloDelta}` : eloDelta} ELO</span>
+            <strong>{result.correct ? 'Correct' : 'Incorrect'}</strong>
+            <span className="elo-delta">{ratingDelta >= 0 ? `+${ratingDelta}` : ratingDelta} ELO</span>
           </div>
-          {!isCorrect && (
-            <p className="correct-answer">
-              Correct answer: <strong>{question.correctAnswer}</strong>
-            </p>
+          {!result.correct && (
+            <p className="correct-answer">Correct answer: <strong>{result.correctAnswer}</strong></p>
           )}
-          {question.feedback && <p className="explanation">{question.feedback}</p>}
+          {result.feedback && <p className="explanation">{result.feedback}</p>}
         </div>
       )}
 
-      {!answerSubmitted ? (
+      {!result ? (
         <div className="quiz-actions">
-          <button className="btn btn-primary" onClick={handleSubmit} disabled={!selectedAnswer}>
-            Submit answer
-          </button>
+          <button className="btn btn-primary" onClick={handleSubmit} disabled={!selectedAnswer}>Submit answer</button>
         </div>
       ) : (
         <div className="quiz-next">
-          <button className="btn btn-primary" onClick={() => loadQuestion()}>
-            Next question →
-          </button>
+          <button className="btn btn-primary" onClick={() => loadQuestion()}>Next question →</button>
           <div className="next-difficulty">
             <span>Adjust difficulty:</span>
             <button onClick={() => loadQuestion('easy')}>Easier</button>
