@@ -1,11 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import './NoQuestions.css'; // Import the CSS file
+import './NoQuestions.css';
+
 const NoQuestions = () => {
   return (
-    <div>
-      <h2>Your ELO got to high for the Questions. Our team is working on making higher level questions. Please come back tomorrow.</h2>
-      <Link to="/">Return Home</Link>
+    <div className="empty-state">
+      <i className="fas fa-mountain empty-icon"></i>
+      <h2>You've outgrown these questions</h2>
+      <p>
+        Your ELO climbed past the available questions for this topic. Our team is
+        adding higher-level challenges — check back soon.
+      </p>
+      <Link to="/home" className="btn btn-primary">Back to subjects</Link>
     </div>
   );
 };

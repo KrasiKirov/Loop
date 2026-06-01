@@ -1,0 +1,254 @@
+.quiz {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: var(--space-12) var(--space-6) var(--space-16);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.quiz-loading {
+  text-align: center;
+  color: var(--text-muted);
+  padding: var(--space-16) 0;
+  font-size: 18px;
+}
+
+/* Top bar */
+.quiz-topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.subject-chip,
+.level-chip {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 500;
+  padding: var(--space-2) var(--space-3);
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.subject-chip {
+  color: var(--accent);
+  border-color: var(--accent-dim);
+  background: var(--accent-dim);
+}
+
+.elo-meter {
+  flex: 1;
+  min-width: 160px;
+}
+
+.elo-meter-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: var(--space-2);
+}
+
+.elo-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.elo-value {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.elo-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--surface-raised);
+  overflow: hidden;
+}
+
+.elo-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 999px;
+  transition: width var(--dur) var(--ease);
+}
+
+/* Question */
+.quiz-question {
+  font-size: 28px;
+  line-height: 1.25;
+  text-align: center;
+  padding: var(--space-4) 0;
+}
+
+/* Answers */
+.answers {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.answer {
+  width: 100%;
+  text-align: left;
+  padding: var(--space-4) var(--space-6);
+  font-size: 16px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  transition: all var(--dur) var(--ease);
+}
+
+.answer:hover:not(:disabled) {
+  border-color: var(--text-muted);
+  background: var(--surface-raised);
+}
+
+.answer:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.answer.selected {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--text);
+}
+
+.answer.correct {
+  border-color: var(--success);
+  background: var(--success-dim);
+  color: var(--text);
+}
+
+.answer.wrong {
+  border-color: var(--danger);
+  background: var(--danger-dim);
+  color: var(--text);
+}
+
+.answer:disabled {
+  cursor: default;
+}
+
+/* Feedback */
+.feedback {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-6);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.feedback-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.feedback-head strong {
+  font-family: var(--font-display);
+  font-size: 17px;
+}
+
+.feedback-correct {
+  border-color: var(--success);
+}
+
+.feedback-correct .feedback-head strong {
+  color: var(--success);
+}
+
+.feedback-wrong {
+  border-color: var(--danger);
+}
+
+.feedback-wrong .feedback-head strong {
+  color: var(--danger);
+}
+
+.elo-delta {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.correct-answer {
+  font-size: 15px;
+  color: var(--text);
+}
+
+.correct-answer strong {
+  color: var(--success);
+}
+
+.explanation {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+/* Actions */
+.quiz-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.quiz-actions .btn {
+  min-width: 200px;
+}
+
+/* Post-answer: next + difficulty adjust */
+.quiz-next {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.quiz-next .btn {
+  min-width: 220px;
+}
+
+.next-difficulty {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.next-difficulty button {
+  padding: var(--space-1) var(--space-4);
+  font-size: 13px;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  transition: all var(--dur) var(--ease);
+}
+
+.next-difficulty button:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+@media (max-width: 600px) {
+  .quiz {
+    padding: var(--space-8) var(--space-4) var(--space-12);
+  }
+  .quiz-question {
+    font-size: 22px;
+  }
+}

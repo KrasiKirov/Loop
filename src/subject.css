@@ -1,0 +1,162 @@
+.subject-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: var(--space-12) var(--space-6) var(--space-16);
+}
+
+/* Header */
+.subject-head {
+  text-align: center;
+  margin-bottom: var(--space-12);
+}
+
+.breadcrumb {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: var(--space-6);
+}
+
+.breadcrumb a {
+  color: var(--text-muted);
+}
+
+.breadcrumb a:hover {
+  color: var(--accent);
+}
+
+.breadcrumb .sep {
+  color: var(--border);
+}
+
+.subject-head h1 {
+  font-size: 40px;
+  letter-spacing: -0.02em;
+}
+
+.subject-head p {
+  font-size: 17px;
+  color: var(--text-muted);
+  margin-top: var(--space-3);
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Topic grid (hub pages) */
+.topic-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.topic-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  padding: var(--space-6);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  transition: transform var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+
+.topic-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.topic-card .topic-icon {
+  font-size: 24px;
+  color: var(--accent);
+  margin-bottom: var(--space-4);
+}
+
+.topic-card h5 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: var(--space-2);
+}
+
+.topic-card p {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* Difficulty grid (topic pages) */
+.difficulty-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.difficulty-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-8) var(--space-6);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: transform var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+
+.difficulty-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent);
+}
+
+.difficulty-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.difficulty-card h5 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.difficulty-card .difficulty-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* Pips */
+.pips {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.pip {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+}
+
+.pip.filled {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+@media (max-width: 720px) {
+  .topic-grid,
+  .difficulty-grid {
+    grid-template-columns: 1fr;
+  }
+}

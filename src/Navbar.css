@@ -1,36 +1,79 @@
-.custom-navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #333; 
-    padding: 0 2rem;
-    height: 60px; 
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 60px;
+  padding: 0 var(--space-8);
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.navbar-brand {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+.navbar-brand:hover {
+  color: var(--text);
+}
+
+.brand-dot {
+  color: var(--accent);
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.navbar-elo {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  padding: var(--space-1) var(--space-3);
+  border-radius: 999px;
+  background: var(--accent-dim);
+}
+
+.navbar-user {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.navbar-logout {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-4);
+  transition: all var(--dur) var(--ease);
+}
+
+.navbar-logout:hover {
+  color: var(--text);
+  border-color: var(--text-muted);
+  background: var(--surface-raised);
+}
+
+.app-main {
+  min-height: calc(100vh - 60px);
+}
+
+@media (max-width: 600px) {
+  .navbar {
+    padding: 0 var(--space-4);
   }
-  
-  .nav-item {
-    color: #fff; 
-    padding: 0.5rem 1rem; 
-    text-decoration: none; 
-    font-weight: 500;
-    transition: color 0.3s ease; 
+  .navbar-user {
+    display: none;
   }
-  
-  .nav-item:hover {
-    color: #1e90ff;
-  }
-  
-  .nav-right {
-    display: flex; 
-  }
-  
-  /* Responsive adjustments */
-  @media (max-width: 768px) {
-    .custom-navbar {
-      padding: 0 1rem; 
-    }
-    .nav-item {
-      padding: 0.5rem 0.8rem; 
-    }
-  }
-  
+}

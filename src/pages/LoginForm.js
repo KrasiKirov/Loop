@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../LoginForm.css';
+import './auth.css';
+import { Link } from 'react-router-dom';
 import { useUser } from '../UserContext';
 
 function LoginForm() {
@@ -15,7 +16,7 @@ function LoginForm() {
 
         // Send a POST request to the server
         try {
-            const response = await fetch('http://localhost:3000/login', {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -24,7 +25,8 @@ function LoginForm() {
             });
 
             if (response.ok) {
-                setUser({ name: response.name, username: response.username, elo: response.elo });
+                const data = await response.json();
+                setUser({ name: data.name, username: data.username, elo: data.elo });
                 // Redirect to /home on successful login
                 navigate('/home');
             } else {
@@ -37,16 +39,17 @@ function LoginForm() {
     };
 
     return (
-        <div className="login-container">
-            <div className="login-form">
-                <h2>Login</h2>
-                {message && <p className="login-message">{message}</p>}
+        <div className="auth-container">
+            <div className="auth-card">
+                <div className="auth-brand">Bold<span>.</span></div>
+                <p className="auth-title">Welcome back</p>
+                {message && <p className="auth-message">{message}</p>}
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
                         <label htmlFor="username">Username</label>
                         <input
                             id="username"
-                            type="username"
+                            type="text"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             required
@@ -62,8 +65,11 @@ function LoginForm() {
                             required
                         />
                     </div>
-                    <button type="submit" className="login-button">Login</button>
+                    <button type="submit" className="auth-button">Log in</button>
                 </form>
+                <p className="auth-switch">
+                    New here? <Link to="/signup">Create an account</Link>
+                </p>
             </div>
         </div>
     );
