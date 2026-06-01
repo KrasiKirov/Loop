@@ -5,12 +5,14 @@ const bodyParser = require('body-parser');
 const pool = require('./db');
 const requireAuth = require('./middleware/requireAuth');
 const authRoutes = require('./auth/routes');
+const practiceRoutes = require('./routes/practice');
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
 app.use('/auth', authRoutes);
+app.use(practiceRoutes);
 
 const VALID_SUBJECTS = require('./subjects');
 
