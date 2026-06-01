@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Quiz.css';
-import { updateRatings } from './elo';
+import { updateRatings, BASE_RATING } from './elo';
 import { useQuizSettings } from '../QuizContext';
 import { useUser } from '../UserContext';
 
@@ -23,7 +23,8 @@ const Quiz = () => {
   const [selectedAnswer, setSelectedAnswer] = useState('');
   const [answerSubmitted, setAnswerSubmitted] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
-  const [elo, setElo] = useState(user.elo || 15);
+  const [elo, setElo] = useState(user.elo || BASE_RATING);
+  const [eloDelta, setEloDelta] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const getBounds = (difficulty, currentElo) => {
@@ -36,13 +37,18 @@ const Quiz = () => {
       case 'hard':
         return { lower: currentElo, upper: Math.round(currentElo + currentElo * m * 2) };
       default:
-        return { lower: 0, upper: 1000 };
+        return { lower: 0, upper: 100000 };
     }
   };
 
-  const loadQuestion = useCallback(async () => {
+  // Loads a fresh question. `difficulty` overrides the stored difficulty so the
+  // post-answer "Easier/Harder" controls take effect immediately.
+  const loadQuestion = async (difficulty = quizSettings.difficulty) => {
     setLoading(true);
-    const { lower, upper } = getBounds(quizSettings.difficulty, elo);
+    if (difficulty !== quizSettings.difficulty) {
+      setQuizSettings((prev) => ({ ...prev, difficulty }));
+    }
+    const { lower, upper } = getBounds(difficulty, elo);
     try {
       const subject = quizSettings.subject || 'Calculus';
       const response = await fetch(`${process.env.REACT_APP_API_URL}/questions?subject=${subject}`);
@@ -74,11 +80,13 @@ const Quiz = () => {
       console.error('Error fetching questions:', error);
       setLoading(false);
     }
-  }, [quizSettings.difficulty, quizSettings.subject, elo, navigate]);
+  };
 
+  // Load the first question on mount.
   useEffect(() => {
     loadQuestion();
-  }, [loadQuestion]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSelect = (answer) => {
     if (answerSubmitted) return;
@@ -89,11 +97,12 @@ const Quiz = () => {
     if (!selectedAnswer || answerSubmitted) return;
 
     const result = selectedAnswer === question.correctAnswer ? 1 : 0;
-    const updatedElo = Math.round(updateRatings(elo, question.score, result, quizSettings.difficulty));
+    const updatedElo = updateRatings(elo, question.score, result);
 
     setIsCorrect(result === 1);
-    setAnswerSubmitted(true);
+    setEloDelta(updatedElo - elo);
     setElo(updatedElo);
+    setAnswerSubmitted(true);
     setUser({ ...user, elo: updatedElo });
 
     fetch(`${process.env.REACT_APP_API_URL}/user/elo`, {
@@ -101,11 +110,6 @@ const Quiz = () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: user.username, elo: updatedElo }),
     }).catch((err) => console.error('Failed to persist ELO:', err));
-  };
-
-  const changeDifficulty = (type) => {
-    const difficulty = type === 'harder' ? 'hard' : type === 'easier' ? 'easy' : 'medium';
-    setQuizSettings((prev) => ({ ...prev, difficulty }));
   };
 
   const answerClass = (answer) => {
@@ -117,8 +121,8 @@ const Quiz = () => {
     return 'answer';
   };
 
-  // ELO progress within the current 50-point tier (purely visual)
-  const tierProgress = Math.max(0, Math.min(100, (elo % 50) * 2));
+  // ELO progress within the current 100-point band (purely visual).
+  const bandProgress = Math.max(0, Math.min(100, elo % 100));
 
   if (loading) {
     return (
@@ -138,7 +142,7 @@ const Quiz = () => {
             <span className="elo-value">{elo}</span>
           </div>
           <div className="elo-bar">
-            <div className="elo-bar-fill" style={{ width: `${tierProgress}%` }} />
+            <div className="elo-bar-fill" style={{ width: `${bandProgress}%` }} />
           </div>
         </div>
         <span className="level-chip">Level {question.score}</span>
@@ -161,28 +165,37 @@ const Quiz = () => {
 
       {answerSubmitted && (
         <div className={`feedback ${isCorrect ? 'feedback-correct' : 'feedback-wrong'}`}>
-          <strong>{isCorrect ? 'Correct!' : 'Not quite.'}</strong>
-          <span>{isCorrect ? `Your ELO is now ${elo}.` : question.feedback}</span>
+          <div className="feedback-head">
+            <strong>{isCorrect ? 'Correct' : 'Incorrect'}</strong>
+            <span className="elo-delta">{eloDelta >= 0 ? `+${eloDelta}` : eloDelta} ELO</span>
+          </div>
+          {!isCorrect && (
+            <p className="correct-answer">
+              Correct answer: <strong>{question.correctAnswer}</strong>
+            </p>
+          )}
+          {question.feedback && <p className="explanation">{question.feedback}</p>}
         </div>
       )}
 
-      <div className="quiz-actions">
-        {answerSubmitted ? (
-          <button className="btn btn-primary" onClick={loadQuestion}>
-            Next question →
-          </button>
-        ) : (
+      {!answerSubmitted ? (
+        <div className="quiz-actions">
           <button className="btn btn-primary" onClick={handleSubmit} disabled={!selectedAnswer}>
             Submit answer
           </button>
-        )}
-      </div>
-
-      <div className="difficulty-toggle">
-        <button onClick={() => changeDifficulty('easier')}>Easier</button>
-        <button onClick={() => changeDifficulty('similar')}>Similar</button>
-        <button onClick={() => changeDifficulty('harder')}>Harder</button>
-      </div>
+        </div>
+      ) : (
+        <div className="quiz-next">
+          <button className="btn btn-primary" onClick={() => loadQuestion()}>
+            Next question →
+          </button>
+          <div className="next-difficulty">
+            <span>Adjust difficulty:</span>
+            <button onClick={() => loadQuestion('easy')}>Easier</button>
+            <button onClick={() => loadQuestion('hard')}>Harder</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

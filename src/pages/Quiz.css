@@ -142,29 +142,61 @@
 .feedback {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: var(--space-2);
   padding: var(--space-4) var(--space-6);
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
   background: var(--surface);
 }
 
-.feedback strong {
+.feedback-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.feedback-head strong {
   font-family: var(--font-display);
-  font-size: 16px;
+  font-size: 17px;
 }
 
-.feedback span {
-  color: var(--text-muted);
-  font-size: 15px;
+.feedback-correct {
+  border-color: var(--success);
 }
 
-.feedback-correct strong {
+.feedback-correct .feedback-head strong {
   color: var(--success);
 }
 
-.feedback-wrong strong {
+.feedback-wrong {
+  border-color: var(--danger);
+}
+
+.feedback-wrong .feedback-head strong {
   color: var(--danger);
+}
+
+.elo-delta {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.correct-answer {
+  font-size: 15px;
+  color: var(--text);
+}
+
+.correct-answer strong {
+  color: var(--success);
+}
+
+.explanation {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-muted);
 }
 
 /* Actions */
@@ -177,32 +209,39 @@
   min-width: 200px;
 }
 
-/* Difficulty toggle (segmented control) */
-.difficulty-toggle {
-  display: inline-flex;
-  align-self: center;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
+/* Post-answer: next + difficulty adjust */
+.quiz-next {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
 }
 
-.difficulty-toggle button {
-  padding: var(--space-2) var(--space-6);
-  font-size: 14px;
+.quiz-next .btn {
+  min-width: 220px;
+}
+
+.next-difficulty {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.next-difficulty button {
+  padding: var(--space-1) var(--space-4);
+  font-size: 13px;
   color: var(--text-muted);
   background: var(--surface);
-  border: none;
-  border-right: 1px solid var(--border);
+  border: 1px solid var(--border);
+  border-radius: 999px;
   transition: all var(--dur) var(--ease);
 }
 
-.difficulty-toggle button:last-child {
-  border-right: none;
-}
-
-.difficulty-toggle button:hover {
-  color: var(--text);
-  background: var(--surface-raised);
+.next-difficulty button:hover {
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
 @media (max-width: 600px) {
