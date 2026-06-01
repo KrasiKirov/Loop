@@ -1,55 +1,17 @@
-import './Physics.css';
-import { Helmet } from 'react-helmet';
-import { Outlet, Link } from "react-router-dom";
+import SubjectHub from '../components/SubjectHub';
 
-
-const Physics = () => {
-  return (
-    <div>
-        <Helmet>
-            <meta charSet="UTF-8" />
-            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" />
-        </Helmet>
-        <div className="container text-center py-5">
-            <h1><span className="app-title">Physics</span></h1>
-
-        </div>
-
-        <div className="features-container">
-        <Link to="/home/physics/astrophysics">
-            <div className="feature">
-            <i class="fas fa-star icon"></i>
-                <h5>Astrophysics</h5>
-                <p>The properties and behavior of celestial bodies and the universe.</p>
-            </div>
-        </Link>
-        <Link to="/home/physics/electromagnetics">
-            <div className="feature">
-            <i class="fas fa-bolt icon"></i>
-                <h5>Electromagnetics</h5>
-                <p>The study of interactions between electric and magnetic fields.</p>
-            </div>
-        </Link>
-        <Link to="/home/physics/quantumMechanics">
-            <div className="feature">
-            <i class="fas fa-atom icon"></i>
-                <h5>Quantum Mechanics</h5>
-                <p>The study of the principles underlying the fundamental quantum theory of physics.</p>
-            </div>
-        </Link>
-        <Link to="/home/physics/thermodynamics">
-            <div className="feature">
-            <i class="fas fa-lightbulb icon"></i>
-                <h5>Thermodynamics</h5>
-                <p>The analysis of principles governing the relationships between forms of energy.</p>
-            </div>
-        </Link>
-        </div>
-        <Outlet />
-    </div>
-    
+const Physics = () => (
+  <SubjectHub
+    title="Physics"
+    description="Unravel the mysteries of energy and matter."
+    breadcrumb={[{ label: 'Home', to: '/home' }, { label: 'Physics' }]}
+    topics={[
+      { to: '/home/physics/astrophysics', icon: 'fas fa-star', title: 'Astrophysics', description: 'The properties and behavior of celestial bodies and the universe.' },
+      { to: '/home/physics/electromagnetics', icon: 'fas fa-bolt', title: 'Electromagnetics', description: 'The study of interactions between electric and magnetic fields.' },
+      { to: '/home/physics/quantumMechanics', icon: 'fas fa-atom', title: 'Quantum Mechanics', description: 'The principles underlying the fundamental quantum theory of physics.' },
+      { to: '/home/physics/thermodynamics', icon: 'fas fa-lightbulb', title: 'Thermodynamics', description: 'Principles governing the relationships between forms of energy.' },
+    ]}
+  />
 );
-};
-  
+
 export default Physics;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import '../SignupForm.css';
+import { useNavigate, Link } from 'react-router-dom';
+import './auth.css';
 
 function SignupForm() {
     const [name, setName] = useState('');
@@ -36,10 +36,11 @@ function SignupForm() {
     };
 
     return (
-        <div className="signup-container">
-            <div className="signup-form">
-                <h2>Sign Up</h2>
-                {message && <p className="signup-message">{message}</p>}
+        <div className="auth-container">
+            <div className="auth-card">
+                <div className="auth-brand">Bold<span>.</span></div>
+                <p className="auth-title">Create your account</p>
+                {message && <p className="auth-message">{message}</p>}
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
                         <label htmlFor="name">Name</label>
@@ -55,7 +56,7 @@ function SignupForm() {
                         <label htmlFor="username">Username</label>
                         <input
                             id="username"
-                            type="username"
+                            type="text"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             required
@@ -71,8 +72,11 @@ function SignupForm() {
                             required
                         />
                     </div>
-                    <button type="submit" className="signup-button">Sign Up</button>
+                    <button type="submit" className="auth-button">Sign up</button>
                 </form>
+                <p className="auth-switch">
+                    Already have an account? <Link to="/login">Log in</Link>
+                </p>
             </div>
         </div>
     );

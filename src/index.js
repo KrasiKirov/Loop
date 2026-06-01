@@ -1,7 +1,8 @@
+import './theme.css';
 import { UserProvider } from './UserContext';
 import { QuizProvider } from './QuizContext';
 
-import Question2 from './pages/Question2';
+import Quiz from './pages/Quiz';
 import NoQuestions from './pages/no-questions';
 
 import ReactDOM from "react-dom/client";
@@ -78,7 +79,7 @@ export default function App() {
                 <Route path="/home/physics/quantumMechanics" element={<QuantumMechanics />} />
                 <Route path="/home/physics/thermodynamics" element={<Thermodynamics />} />
 
-                <Route path="/home/question2" element={<Question2 />} />
+                <Route path="/home/quiz" element={<Quiz />} />
                 <Route path="/home/no-questions" element={<NoQuestions />} />
               </Route>
             </Route>

@@ -1,55 +1,17 @@
-import './Math.css';
-import { Helmet } from 'react-helmet';
-import { Outlet, Link } from "react-router-dom";
+import SubjectHub from '../components/SubjectHub';
 
-
-const Mathematics = () => {
-  return (
-    <div>
-        <Helmet>
-            <meta charSet="UTF-8" />
-            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" />
-        </Helmet>
-        <div className="container text-center py-5">
-            <h1><span className="app-title">Mathematics</span></h1>
-
-        </div>
-
-        <div className="features-container">
-        <Link to="/home/math/discreteMath">
-            <div className="feature">
-                <i className="fas fa-plus icon"></i>
-                <h5>Discrete Mathematics</h5>
-                <p>From simple number theory to complex discrete mathematics.</p>
-            </div>
-        </Link>
-        <Link to="/home/math/calculus">
-            <div className="feature">
-                <i className="fas fa-calculator icon"></i>
-                <h5>Calculus</h5>
-                <p>From single variable limits to multivariable and vector calculus.</p>
-            </div>
-        </Link>
-        <Link to="/home/math/linearAlgebra">
-            <div className="feature">
-                <i className="fas fa-equals icon"></i>
-                <h5>Linear Algebra</h5>
-                <p>From vectors to abstract and complex linear algebra.</p>
-            </div>
-        </Link>
-        <Link to="/home/math/statistics">
-            <div className="feature">
-                <i className="fas fa-dice icon"></i>
-                <h5>Statistics and Probability</h5>
-                <p>From elementary statistical tools to advanced probabilities and statistical methods.</p>
-            </div>
-        </Link>
-        </div>
-        <Outlet />
-    </div>
-    
+const Mathematics = () => (
+  <SubjectHub
+    title="Mathematics"
+    description="Explore the universe of numbers and patterns."
+    breadcrumb={[{ label: 'Home', to: '/home' }, { label: 'Mathematics' }]}
+    topics={[
+      { to: '/home/math/discreteMath', icon: 'fas fa-plus', title: 'Discrete Mathematics', description: 'From simple number theory to complex discrete mathematics.' },
+      { to: '/home/math/calculus', icon: 'fas fa-calculator', title: 'Calculus', description: 'From single variable limits to multivariable and vector calculus.' },
+      { to: '/home/math/linearAlgebra', icon: 'fas fa-equals', title: 'Linear Algebra', description: 'From vectors to abstract and complex linear algebra.' },
+      { to: '/home/math/statistics', icon: 'fas fa-dice', title: 'Statistics & Probability', description: 'From elementary statistical tools to advanced probabilistic methods.' },
+    ]}
+  />
 );
-};
-  
+
 export default Mathematics;
