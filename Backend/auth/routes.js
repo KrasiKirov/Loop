@@ -7,14 +7,13 @@ const {
 
 const router = express.Router();
 const SALT_ROUNDS = 10;
-const BASE_RATING = 1000;
 
 // A real bcrypt hash to compare against when the user doesn't exist, so login
 // takes the same time whether or not the username is valid (prevents username
 // enumeration via response timing).
 const DUMMY_HASH = bcrypt.hashSync('unused-placeholder-password', SALT_ROUNDS);
 
-const publicUser = (row) => ({ name: row.name, username: row.username, elo: row.score });
+const publicUser = (row) => ({ name: row.name, username: row.username });
 
 const issuePair = async (user) => ({
   accessToken: signAccessToken(user),
@@ -31,8 +30,8 @@ router.post('/signup', async (req, res) => {
     if (exists.rows.length) return res.status(400).json({ error: 'User already exists' });
     const hash = await bcrypt.hash(password, SALT_ROUNDS);
     const { rows } = await pool.query(
-      'INSERT INTO users (name, username, password, score) VALUES ($1,$2,$3,$4) RETURNING id, name, username, score',
-      [name, username, hash, BASE_RATING]
+      'INSERT INTO users (name, username, password) VALUES ($1,$2,$3) RETURNING id, name, username',
+      [name, username, hash]
     );
     const user = rows[0];
     const pair = await issuePair(user);
@@ -50,7 +49,7 @@ router.post('/login', async (req, res) => {
   }
   try {
     const { rows } = await pool.query(
-      'SELECT id, name, username, password, score FROM users WHERE username = $1',
+      'SELECT id, name, username, password FROM users WHERE username = $1',
       [username]
     );
     const user = rows[0];
