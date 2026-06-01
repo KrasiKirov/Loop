@@ -5,8 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
     id       SERIAL PRIMARY KEY,
     name     VARCHAR(255) NOT NULL,
     username VARCHAR(255) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    score    INTEGER DEFAULT 1000
+    password VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS refresh_tokens (
