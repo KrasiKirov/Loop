@@ -90,7 +90,7 @@ const Quiz = () => {
         const res = await apiFetch(`/me/ratings/${subject}`);
         if (res.ok) {
           const data = await res.json();
-          rating = data.rating;
+          rating = data.rating ?? BASE_RATING;
           setElo(rating);
         }
       } catch (err) {
