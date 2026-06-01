@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './auth.css';
 import { Link } from 'react-router-dom';
-import { useUser } from '../UserContext';
+import { useUser } from '../AuthContext';
 
 function LoginForm() {
     const [username, setUsername] = useState('');
@@ -10,31 +10,14 @@ function LoginForm() {
     const [message, setMessage] = useState('');
 
     const navigate = useNavigate(); // Hook for navigation
-    const { setUser } = useUser();
+    const { login } = useUser();
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        // Send a POST request to the server
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL}/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ username, password }),
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setUser({ name: data.name, username: data.username, elo: data.elo });
-                // Redirect to /home on successful login
-                navigate('/home');
-            } else {
-                setMessage('Login failed');
-            }
+            await login(username, password);
+            navigate('/home');
         } catch (error) {
-            console.error('Error:', error);
-            setMessage('An error occurred');
+            setMessage(error.message || 'Login failed');
         }
     };
 

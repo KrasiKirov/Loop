@@ -1,5 +1,5 @@
 import './theme.css';
-import { UserProvider } from './UserContext';
+import { UserProvider } from './AuthContext';
 import { QuizProvider } from './QuizContext';
 
 import Quiz from './pages/Quiz';
