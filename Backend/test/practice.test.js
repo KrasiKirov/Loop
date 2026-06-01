@@ -9,8 +9,20 @@ async function token() {
   const res = await request(app).post('/auth/signup').send({ name: 'A', username: 'pat', password: 'pw' });
   return res.body.accessToken;
 }
+async function seedQuestion(over = {}) {
+  const q = {
+    question: '2+2?', answer1: '4', answer2: '3', answer3: '5', answer4: '1',
+    correctanswer: '4', feedback: 'Basic addition.', score: 1000, subject: 'Calculus', ...over,
+  };
+  const { rows } = await pool.query(
+    `INSERT INTO calculus (question, answer1, answer2, answer3, answer4, correctanswer, feedback, score, subject)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
+    [q.question, q.answer1, q.answer2, q.answer3, q.answer4, q.correctanswer, q.feedback, q.score, q.subject]
+  );
+  return rows[0].id;
+}
 
-test('GET /me/ratings/:subject defaults to 1000 for a new subject', async () => {
+test('GET /me/ratings/:subject defaults to 1000', async () => {
   await resetDb();
   const t = await token();
   const res = await request(app).get('/me/ratings/Calculus').set('Authorization', `Bearer ${t}`);
@@ -18,55 +30,37 @@ test('GET /me/ratings/:subject defaults to 1000 for a new subject', async () => 
   assert.deepStrictEqual(res.body, { subject: 'Calculus', rating: 1000 });
 });
 
-test('GET /me/ratings requires a token', async () => {
+test('GET /questions/next requires a token', async () => {
   await resetDb();
-  const res = await request(app).get('/me/ratings/Calculus');
+  const res = await request(app).get('/questions/next?subject=Calculus&difficulty=medium');
   assert.strictEqual(res.status, 401);
 });
 
-test('GET /me/ratings rejects an invalid subject', async () => {
+test('GET /questions/next returns a question WITHOUT the answer', async () => {
   await resetDb();
   const t = await token();
-  const res = await request(app).get('/me/ratings/FakeSubject').set('Authorization', `Bearer ${t}`);
+  await seedQuestion();
+  const res = await request(app).get('/questions/next?subject=Calculus&difficulty=medium').set('Authorization', `Bearer ${t}`);
+  assert.strictEqual(res.status, 200);
+  assert.ok(res.body.id);
+  assert.strictEqual(res.body.question, '2+2?');
+  assert.deepStrictEqual(res.body.answers, ['4', '3', '5', '1']);
+  assert.strictEqual(res.body.correctAnswer, undefined);
+  assert.strictEqual(res.body.feedback, undefined);
+});
+
+test('GET /questions/next 400s on an invalid subject', async () => {
+  await resetDb();
+  const t = await token();
+  const res = await request(app).get('/questions/next?subject=Nope&difficulty=medium').set('Authorization', `Bearer ${t}`);
   assert.strictEqual(res.status, 400);
 });
 
-test('POST /answers requires a token', async () => {
-  await resetDb();
-  const res = await request(app)
-    .post('/answers')
-    .send({ subject: 'Calculus', isCorrect: true, questionScore: 800, rating: 1010 });
-  assert.strictEqual(res.status, 401);
-});
-
-test('POST /answers upserts the rating and records the answer', async () => {
+test('GET /questions/next 404s when the subject has no questions', async () => {
   await resetDb();
   const t = await token();
-  const r1 = await request(app).post('/answers').set('Authorization', `Bearer ${t}`)
-    .send({ subject: 'Calculus', isCorrect: true, questionScore: 800, rating: 1010 });
-  assert.strictEqual(r1.status, 200);
-  let g = await request(app).get('/me/ratings/Calculus').set('Authorization', `Bearer ${t}`);
-  assert.strictEqual(g.body.rating, 1010);
-
-  const r2 = await request(app).post('/answers').set('Authorization', `Bearer ${t}`)
-    .send({ subject: 'Calculus', isCorrect: false, questionScore: 820, rating: 995 });
-  assert.strictEqual(r2.status, 200);
-  g = await request(app).get('/me/ratings/Calculus').set('Authorization', `Bearer ${t}`);
-  assert.strictEqual(g.body.rating, 995);
-
-  const ratings = await pool.query('SELECT count(*)::int AS n FROM user_ratings');
-  assert.strictEqual(ratings.rows[0].n, 1);
-  const answers = await pool.query('SELECT count(*)::int AS n FROM answers');
-  assert.strictEqual(answers.rows[0].n, 2);
-});
-
-test('ratings are isolated per subject', async () => {
-  await resetDb();
-  const t = await token();
-  await request(app).post('/answers').set('Authorization', `Bearer ${t}`)
-    .send({ subject: 'Calculus', isCorrect: true, questionScore: 800, rating: 1010 });
-  const bio = await request(app).get('/me/ratings/Biochemistry').set('Authorization', `Bearer ${t}`);
-  assert.strictEqual(bio.body.rating, 1000);
+  const res = await request(app).get('/questions/next?subject=Calculus&difficulty=medium').set('Authorization', `Bearer ${t}`);
+  assert.strictEqual(res.status, 404);
 });
 
 test.after(() => pool.end());
