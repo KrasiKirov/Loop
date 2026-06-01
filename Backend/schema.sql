@@ -1,16 +1,18 @@
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
 -- Run this once to set up the database:
 --   psql -d adaptive_learning -f schema.sql
 
 CREATE TABLE IF NOT EXISTS users (
-    id       SERIAL PRIMARY KEY,
+    id       UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name     VARCHAR(255) NOT NULL,
     username VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS refresh_tokens (
-    id         SERIAL PRIMARY KEY,
-    user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     token_hash VARCHAR(64) NOT NULL,
     expires_at TIMESTAMP NOT NULL,
     revoked    BOOLEAN DEFAULT FALSE,
@@ -19,8 +21,8 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
 CREATE INDEX IF NOT EXISTS idx_refresh_user ON refresh_tokens(user_id);
 
 CREATE TABLE IF NOT EXISTS user_ratings (
-    id         SERIAL PRIMARY KEY,
-    user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     subject    VARCHAR(100) NOT NULL,
     rating     INTEGER NOT NULL,
     updated_at TIMESTAMP DEFAULT NOW(),
@@ -29,8 +31,8 @@ CREATE TABLE IF NOT EXISTS user_ratings (
 CREATE INDEX IF NOT EXISTS idx_ratings_user ON user_ratings(user_id);
 
 CREATE TABLE IF NOT EXISTS answers (
-    id             SERIAL PRIMARY KEY,
-    user_id        INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id        UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     subject        VARCHAR(100) NOT NULL,
     is_correct     BOOLEAN NOT NULL,
     question_score INTEGER NOT NULL,
@@ -43,7 +45,7 @@ CREATE INDEX IF NOT EXISTS idx_answers_user ON answers(user_id);
 -- Table names are lowercase; the app sends e.g. "Calculus" and we lowercase it before querying.
 
 CREATE TABLE IF NOT EXISTS calculus (
-    id            SERIAL PRIMARY KEY,
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     question      TEXT NOT NULL,
     answer1       TEXT NOT NULL,
     answer2       TEXT NOT NULL,
@@ -56,7 +58,7 @@ CREATE TABLE IF NOT EXISTS calculus (
 );
 
 CREATE TABLE IF NOT EXISTS discretemath (
-    id            SERIAL PRIMARY KEY,
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     question      TEXT NOT NULL,
     answer1       TEXT NOT NULL,
     answer2       TEXT NOT NULL,
@@ -69,7 +71,7 @@ CREATE TABLE IF NOT EXISTS discretemath (
 );
 
 CREATE TABLE IF NOT EXISTS linearalgebra (
-    id            SERIAL PRIMARY KEY,
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     question      TEXT NOT NULL,
     answer1       TEXT NOT NULL,
     answer2       TEXT NOT NULL,
@@ -82,7 +84,7 @@ CREATE TABLE IF NOT EXISTS linearalgebra (
 );
 
 CREATE TABLE IF NOT EXISTS statistics (
-    id            SERIAL PRIMARY KEY,
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     question      TEXT NOT NULL,
     answer1       TEXT NOT NULL,
     answer2       TEXT NOT NULL,
@@ -95,7 +97,7 @@ CREATE TABLE IF NOT EXISTS statistics (
 );
 
 CREATE TABLE IF NOT EXISTS anatomy (
-    id            SERIAL PRIMARY KEY,
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     question      TEXT NOT NULL,
     answer1       TEXT NOT NULL,
     answer2       TEXT NOT NULL,
@@ -108,7 +110,7 @@ CREATE TABLE IF NOT EXISTS anatomy (
 );
 
 CREATE TABLE IF NOT EXISTS microbiology (
-    id            SERIAL PRIMARY KEY,
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     question      TEXT NOT NULL,
     answer1       TEXT NOT NULL,
     answer2       TEXT NOT NULL,
@@ -121,7 +123,7 @@ CREATE TABLE IF NOT EXISTS microbiology (
 );
 
 CREATE TABLE IF NOT EXISTS molecularbiology (
-    id            SERIAL PRIMARY KEY,
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     question      TEXT NOT NULL,
     answer1       TEXT NOT NULL,
     answer2       TEXT NOT NULL,
@@ -134,7 +136,7 @@ CREATE TABLE IF NOT EXISTS molecularbiology (
 );
 
 CREATE TABLE IF NOT EXISTS physiology (
-    id            SERIAL PRIMARY KEY,
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     question      TEXT NOT NULL,
     answer1       TEXT NOT NULL,
     answer2       TEXT NOT NULL,
@@ -147,7 +149,7 @@ CREATE TABLE IF NOT EXISTS physiology (
 );
 
 CREATE TABLE IF NOT EXISTS analyticalchemistry (
-    id            SERIAL PRIMARY KEY,
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     question      TEXT NOT NULL,
     answer1       TEXT NOT NULL,
     answer2       TEXT NOT NULL,
@@ -160,7 +162,7 @@ CREATE TABLE IF NOT EXISTS analyticalchemistry (
 );
 
 CREATE TABLE IF NOT EXISTS biochemistry (
-    id            SERIAL PRIMARY KEY,
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     question      TEXT NOT NULL,
     answer1       TEXT NOT NULL,
     answer2       TEXT NOT NULL,
@@ -173,7 +175,7 @@ CREATE TABLE IF NOT EXISTS biochemistry (
 );
 
 CREATE TABLE IF NOT EXISTS inorganicchemistry (
-    id            SERIAL PRIMARY KEY,
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     question      TEXT NOT NULL,
     answer1       TEXT NOT NULL,
     answer2       TEXT NOT NULL,
@@ -186,7 +188,7 @@ CREATE TABLE IF NOT EXISTS inorganicchemistry (
 );
 
 CREATE TABLE IF NOT EXISTS organicchemistry (
-    id            SERIAL PRIMARY KEY,
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     question      TEXT NOT NULL,
     answer1       TEXT NOT NULL,
     answer2       TEXT NOT NULL,
@@ -199,7 +201,7 @@ CREATE TABLE IF NOT EXISTS organicchemistry (
 );
 
 CREATE TABLE IF NOT EXISTS astrophysics (
-    id            SERIAL PRIMARY KEY,
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     question      TEXT NOT NULL,
     answer1       TEXT NOT NULL,
     answer2       TEXT NOT NULL,
@@ -212,7 +214,7 @@ CREATE TABLE IF NOT EXISTS astrophysics (
 );
 
 CREATE TABLE IF NOT EXISTS electromagnetics (
-    id            SERIAL PRIMARY KEY,
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     question      TEXT NOT NULL,
     answer1       TEXT NOT NULL,
     answer2       TEXT NOT NULL,
@@ -225,7 +227,7 @@ CREATE TABLE IF NOT EXISTS electromagnetics (
 );
 
 CREATE TABLE IF NOT EXISTS quantummechanics (
-    id            SERIAL PRIMARY KEY,
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     question      TEXT NOT NULL,
     answer1       TEXT NOT NULL,
     answer2       TEXT NOT NULL,
@@ -238,7 +240,7 @@ CREATE TABLE IF NOT EXISTS quantummechanics (
 );
 
 CREATE TABLE IF NOT EXISTS thermodynamics (
-    id            SERIAL PRIMARY KEY,
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     question      TEXT NOT NULL,
     answer1       TEXT NOT NULL,
     answer2       TEXT NOT NULL,
