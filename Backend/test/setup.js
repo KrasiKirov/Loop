@@ -57,7 +57,9 @@ CREATE TABLE cards (
   correctanswer TEXT NOT NULL,
   explanation TEXT NOT NULL,
   rating INT NOT NULL DEFAULT 1000,
-  created_at TIMESTAMP DEFAULT NOW()
+  created_at TIMESTAMP DEFAULT NOW(),
+  CONSTRAINT cards_correct_in_options CHECK (correctanswer IN (answer1, answer2, answer3, answer4)),
+  CONSTRAINT cards_rating_band CHECK (rating BETWEEN 700 AND 2000)
 );
 CREATE INDEX cards_pattern_rating ON cards (pattern_id, rating);
 CREATE TABLE user_ratings (
@@ -99,7 +101,7 @@ CREATE TABLE duels (
   pattern_slug VARCHAR(64),
   card_ids UUID[] NOT NULL,
   is_ghost BOOLEAN NOT NULL DEFAULT FALSE,
-  status VARCHAR(16) NOT NULL DEFAULT 'pending',
+  status VARCHAR(16) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','complete','expired')),
   created_at TIMESTAMP DEFAULT NOW(),
   expires_at TIMESTAMP NOT NULL DEFAULT NOW() + INTERVAL '7 days'
 );
@@ -109,7 +111,8 @@ CREATE TABLE duel_results (
   is_ghost BOOLEAN NOT NULL DEFAULT FALSE,
   num_correct SMALLINT NOT NULL,
   total_ms INTEGER NOT NULL,
-  finished_at TIMESTAMP DEFAULT NOW()
+  finished_at TIMESTAMP DEFAULT NOW(),
+  CONSTRAINT duel_results_ghost_pairing CHECK ((user_id IS NULL) = is_ghost)
 );
 CREATE UNIQUE INDEX duel_results_one_per_user
   ON duel_results (duel_id, user_id) WHERE user_id IS NOT NULL;
@@ -125,7 +128,8 @@ GRANT SELECT ON patterns, cards TO app_user;
 GRANT SELECT, INSERT, UPDATE ON user_ratings TO app_user;
 GRANT SELECT, INSERT ON attempts TO app_user;
 GRANT SELECT, INSERT, UPDATE ON srs_state TO app_user;
-GRANT SELECT, INSERT, UPDATE ON duels TO app_user;
+GRANT SELECT, INSERT ON duels TO app_user;
+GRANT UPDATE (status) ON duels TO app_user;
 GRANT SELECT, INSERT ON duel_results TO app_user;
 
 ALTER TABLE users          ENABLE ROW LEVEL SECURITY;

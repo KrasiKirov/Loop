@@ -56,7 +56,11 @@ CREATE TABLE IF NOT EXISTS cards (
     correctanswer TEXT NOT NULL,              -- byte-identical to one of answer1-4
     explanation   TEXT NOT NULL,
     rating        INT NOT NULL DEFAULT 1000,  -- difficulty on the ELO scale (700-2000)
-    created_at    TIMESTAMP DEFAULT NOW()
+    created_at    TIMESTAMP DEFAULT NOW(),
+    -- A bad card (correct answer not among the options) is unanswerable and silent;
+    -- fail it loudly at insert. Difficulty must stay in the ELO band getBounds expects.
+    CONSTRAINT cards_correct_in_options CHECK (correctanswer IN (answer1, answer2, answer3, answer4)),
+    CONSTRAINT cards_rating_band CHECK (rating BETWEEN 700 AND 2000)
 );
 CREATE INDEX IF NOT EXISTS cards_pattern_rating ON cards (pattern_id, rating);
 
@@ -110,7 +114,8 @@ CREATE TABLE IF NOT EXISTS duels (
     pattern_slug  VARCHAR(64),                                  -- NULL = mixed
     card_ids      UUID[] NOT NULL,
     is_ghost      BOOLEAN NOT NULL DEFAULT FALSE,
-    status        VARCHAR(16) NOT NULL DEFAULT 'pending',       -- pending|complete|expired
+    status        VARCHAR(16) NOT NULL DEFAULT 'pending'
+                  CHECK (status IN ('pending','complete','expired')),
     created_at    TIMESTAMP DEFAULT NOW(),
     expires_at    TIMESTAMP NOT NULL DEFAULT NOW() + INTERVAL '7 days'
 );
@@ -121,7 +126,9 @@ CREATE TABLE IF NOT EXISTS duel_results (
     is_ghost    BOOLEAN NOT NULL DEFAULT FALSE,
     num_correct SMALLINT NOT NULL,
     total_ms    INTEGER NOT NULL,
-    finished_at TIMESTAMP DEFAULT NOW()
+    finished_at TIMESTAMP DEFAULT NOW(),
+    -- A ghost row has no user_id; a real row must have one. Enforce the pairing.
+    CONSTRAINT duel_results_ghost_pairing CHECK ((user_id IS NULL) = is_ghost)
 );
 CREATE UNIQUE INDEX IF NOT EXISTS duel_results_one_per_user
   ON duel_results (duel_id, user_id) WHERE user_id IS NOT NULL;
@@ -151,7 +158,11 @@ GRANT SELECT ON patterns, cards TO app_user;                 -- public content r
 GRANT SELECT, INSERT, UPDATE ON user_ratings TO app_user;
 GRANT SELECT, INSERT ON attempts TO app_user;
 GRANT SELECT, INSERT, UPDATE ON srs_state TO app_user;
-GRANT SELECT, INSERT, UPDATE ON duels TO app_user;
+-- Duel resolution only ever flips `status`; column-scoped UPDATE means a participant
+-- can never re-parent a duel (challenger_id/opponent_id/card_ids) even if the RLS
+-- USING clause matches them.
+GRANT SELECT, INSERT ON duels TO app_user;
+GRANT UPDATE (status) ON duels TO app_user;
 GRANT SELECT, INSERT ON duel_results TO app_user;
 
 -- Enable RLS (not FORCE: the owner role used by migrations/seed/tests bypasses it;
