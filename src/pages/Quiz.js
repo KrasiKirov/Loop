@@ -19,6 +19,9 @@ const Quiz = () => {
   const [rating, setRating] = useState(BASE_RATING);
   const [ratingDelta, setRatingDelta] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const [session, setSession] = useState({ answered: 0, correct: 0, streak: 0, best: 0 });
   const seenIds = useRef([]); // questions already shown this session (no repeats)
 
@@ -26,6 +29,8 @@ const Quiz = () => {
 
   const loadQuestion = async (difficulty = quizSettings.difficulty) => {
     setLoading(true);
+    setLoadError(false);
+    setSubmitError('');
     if (difficulty !== quizSettings.difficulty) {
       setQuizSettings((prev) => ({ ...prev, difficulty }));
     }
@@ -44,6 +49,7 @@ const Quiz = () => {
       setLoading(false);
     } catch (err) {
       console.error('Error fetching question:', err);
+      setLoadError(true);
       setLoading(false);
     }
   };
@@ -66,7 +72,9 @@ const Quiz = () => {
   };
 
   const handleSubmit = async () => {
-    if (!selectedAnswer || result) return;
+    if (!selectedAnswer || result || submitting) return;
+    setSubmitError('');
+    setSubmitting(true);
     try {
       const res = await apiFetch('/attempts', {
         method: 'POST',
@@ -86,8 +94,12 @@ const Quiz = () => {
           best: Math.max(s.best, streak),
         };
       });
+      setSubmitError('');
     } catch (err) {
       console.error('Error submitting answer:', err);
+      setSubmitError('Could not submit your answer. Check your connection and try again.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -102,6 +114,17 @@ const Quiz = () => {
 
   if (loading) {
     return <div className="quiz"><div className="quiz-loading">Loading question…</div></div>;
+  }
+
+  if (loadError) {
+    return (
+      <div className="quiz">
+        <div className="quiz-error">
+          <p>We couldn't load a question. Check your connection and try again.</p>
+          <button className="btn btn-primary" onClick={() => loadQuestion()}>Retry</button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -154,9 +177,13 @@ const Quiz = () => {
         </div>
       )}
 
+      {submitError && <p className="quiz-submit-error">{submitError}</p>}
+
       {!result ? (
         <div className="quiz-actions">
-          <button className="btn btn-primary" onClick={handleSubmit} disabled={!selectedAnswer}>Submit answer</button>
+          <button className="btn btn-primary" onClick={handleSubmit} disabled={!selectedAnswer || submitting}>
+            {submitting ? 'Submitting…' : 'Submit answer'}
+          </button>
         </div>
       ) : (
         <div className="quiz-next">

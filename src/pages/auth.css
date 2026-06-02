@@ -87,9 +87,14 @@
   transition: all var(--dur) var(--ease);
 }
 
-.auth-button:hover {
+.auth-button:hover:not(:disabled) {
   background-color: var(--accent-hover);
   transform: translateY(-1px);
+}
+
+.auth-button:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .auth-message {

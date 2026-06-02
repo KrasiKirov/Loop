@@ -14,6 +14,22 @@
   font-size: 18px;
 }
 
+.quiz-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  text-align: center;
+  color: var(--text-muted);
+  padding: var(--space-16) 0;
+}
+
+.quiz-submit-error {
+  text-align: center;
+  font-size: 14px;
+  color: var(--danger);
+}
+
 /* Top bar */
 .quiz-topbar {
   display: flex;
