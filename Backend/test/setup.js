@@ -5,6 +5,8 @@ process.env.DB_AUTH_USER = 'app_auth';
 process.env.DB_AUTH_PASSWORD = '';
 process.env.DB_APP_USER = 'app_user';
 process.env.DB_APP_PASSWORD = '';
+process.env.RATE_LIMIT_AUTH_MAX = '1000000';
+process.env.RATE_LIMIT_GLOBAL_MAX = '1000000';
 
 const { Pool } = require('pg');
 

@@ -8,17 +8,22 @@ function SignupForm() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
+    const [submitting, setSubmitting] = useState(false);
 
     const navigate = useNavigate();
     const { signup } = useUser();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (submitting) return;
+        setMessage('');
+        setSubmitting(true);
         try {
             await signup(name, username, password);
             navigate('/home');
         } catch (error) {
             setMessage(error.message || 'Signup failed');
+            setSubmitting(false);
         }
     };
 
@@ -59,7 +64,9 @@ function SignupForm() {
                             required
                         />
                     </div>
-                    <button type="submit" className="auth-button">Sign up</button>
+                    <button type="submit" className="auth-button" disabled={submitting}>
+                        {submitting ? 'Creating account…' : 'Sign up'}
+                    </button>
                 </form>
                 <p className="auth-switch">
                     Already have an account? <Link to="/login">Log in</Link>

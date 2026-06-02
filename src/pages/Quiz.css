@@ -14,6 +14,22 @@
   font-size: 18px;
 }
 
+.quiz-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  text-align: center;
+  color: var(--text-muted);
+  padding: var(--space-16) 0;
+}
+
+.quiz-submit-error {
+  text-align: center;
+  font-size: 14px;
+  color: var(--danger);
+}
+
 /* Top bar */
 .quiz-topbar {
   display: flex;
@@ -80,12 +96,53 @@
   transition: width var(--dur) var(--ease);
 }
 
+/* Session progress strip */
+.session-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.session-strip strong {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.session-strip .sep {
+  opacity: 0.5;
+}
+
+.session-strip .streak-on {
+  color: var(--accent);
+}
+
+.session-strip .streak-on strong {
+  color: var(--accent);
+}
+
+.session-strip .streak-best {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
 /* Question */
 .quiz-question {
   font-size: 28px;
   line-height: 1.25;
   text-align: center;
   padding: var(--space-4) 0;
+}
+
+/* Inline math: keep super/subscripts from disturbing line height */
+.quiz sup,
+.quiz sub {
+  font-size: 0.72em;
+  line-height: 0;
 }
 
 /* Answers */

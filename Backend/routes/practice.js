@@ -1,10 +1,37 @@
 const express = require('express');
+const { z } = require('zod');
 const { userPool, withUserContext } = require('../db');
 const requireAuth = require('../middleware/requireAuth');
+const { validate } = require('../middleware/validate');
 const VALID_SUBJECTS = require('../subjects');
 const { BASE_RATING, getBounds, updateRatings } = require('../elo');
 
 const router = express.Router();
+
+const attemptSchema = z.object({
+  subject: z.string().min(1),
+  questionId: z.string().uuid(),
+  selectedAnswer: z.string(),
+});
+const nextQuerySchema = z.object({
+  subject: z.string().min(1),
+  difficulty: z.enum(['easy', 'medium', 'hard']),
+  exclude: z.string().optional(),
+});
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// Fisher-Yates shuffle (returns a new array). Answers are stored with a strong
+// "correct option first" bias from generation; shuffling per serve removes any
+// positional tell so the slot a user clicks carries no information.
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 router.get('/me/ratings/:subject', requireAuth, async (req, res) => {
   const { subject } = req.params;
@@ -23,11 +50,13 @@ router.get('/me/ratings/:subject', requireAuth, async (req, res) => {
   }
 });
 
-router.get('/questions/next', requireAuth, async (req, res) => {
-  const { subject, difficulty } = req.query;
+router.get('/questions/next', requireAuth, validate(nextQuerySchema, 'query'), async (req, res) => {
+  const { subject, difficulty, exclude } = req.query;
   if (!VALID_SUBJECTS.includes(subject)) {
     return res.status(400).json({ error: 'Invalid subject' });
   }
+  // Question ids already shown this session — only keep well-formed UUIDs.
+  const seen = (exclude ? String(exclude).split(',') : []).filter((s) => UUID_RE.test(s));
   try {
     const ratingQ = await userPool.query(
       'SELECT rating FROM user_ratings WHERE user_id = $1 AND subject = $2',
@@ -36,17 +65,23 @@ router.get('/questions/next', requireAuth, async (req, res) => {
     const elo = ratingQ.rows.length ? ratingQ.rows[0].rating : BASE_RATING;
     const { lower, upper } = getBounds(difficulty, elo);
     const table = subject.toLowerCase();
+    const cols = 'id, question, answer1, answer2, answer3, answer4, score, subject';
 
+    // Prefer in-band + unseen; then any unseen; then any (bank exhausted → allow a repeat).
     let pick = await userPool.query(
-      `SELECT id, question, answer1, answer2, answer3, answer4, score, subject
-         FROM ${table} WHERE score >= $1 AND score <= $2 ORDER BY random() LIMIT 1`,
-      [lower, upper]
+      `SELECT ${cols} FROM ${table}
+         WHERE score >= $1 AND score <= $2 AND id <> ALL($3::uuid[])
+         ORDER BY random() LIMIT 1`,
+      [lower, upper, seen]
     );
     if (!pick.rows.length) {
       pick = await userPool.query(
-        `SELECT id, question, answer1, answer2, answer3, answer4, score, subject
-           FROM ${table} ORDER BY random() LIMIT 1`
+        `SELECT ${cols} FROM ${table} WHERE id <> ALL($1::uuid[]) ORDER BY random() LIMIT 1`,
+        [seen]
       );
+    }
+    if (!pick.rows.length) {
+      pick = await userPool.query(`SELECT ${cols} FROM ${table} ORDER BY random() LIMIT 1`);
     }
     if (!pick.rows.length) return res.status(404).json({ error: 'No questions found' });
 
@@ -54,7 +89,7 @@ router.get('/questions/next', requireAuth, async (req, res) => {
     res.json({
       id: q.id,
       question: q.question,
-      answers: [q.answer1, q.answer2, q.answer3, q.answer4],
+      answers: shuffle([q.answer1, q.answer2, q.answer3, q.answer4]),
       score: q.score,
       subject: q.subject,
     });
@@ -64,7 +99,7 @@ router.get('/questions/next', requireAuth, async (req, res) => {
   }
 });
 
-router.post('/attempts', requireAuth, async (req, res) => {
+router.post('/attempts', requireAuth, validate(attemptSchema), async (req, res) => {
   const { subject, questionId, selectedAnswer } = req.body;
   if (!VALID_SUBJECTS.includes(subject) || !questionId || selectedAnswer === undefined) {
     return res.status(400).json({ error: 'subject, questionId, selectedAnswer are required' });

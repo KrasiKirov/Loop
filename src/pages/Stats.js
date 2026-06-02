@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../api/client';
 import Sparkline from '../components/Sparkline';
+import { subjectLabel } from '../subjectLabels';
 import './Stats.css';
 
 const pct = (a) => `${Math.round(a * 100)}%`;
@@ -51,7 +52,7 @@ const Stats = () => {
           {subjects.map((s) => (
             <div key={s.subject} className="stat-card">
               <div className="stat-card-head">
-                <h5>{s.subject}</h5>
+                <h5>{subjectLabel(s.subject)}</h5>
                 <span className="stat-rating">{s.rating}</span>
               </div>
               <Sparkline points={s.trend} width={260} height={48} className="stat-spark" />

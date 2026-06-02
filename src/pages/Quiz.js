@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Quiz.css';
 import { useQuizSettings } from '../QuizContext';
 import { apiFetch } from '../api/client';
+import { subjectLabel } from '../subjectLabels';
+import MathText from '../components/MathText';
 
 const BASE_RATING = 1000;
 const EMPTY = { id: '', question: '', answers: [], score: 0, subject: '' };
@@ -17,25 +19,37 @@ const Quiz = () => {
   const [rating, setRating] = useState(BASE_RATING);
   const [ratingDelta, setRatingDelta] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [session, setSession] = useState({ answered: 0, correct: 0, streak: 0, best: 0 });
+  const seenIds = useRef([]); // questions already shown this session (no repeats)
 
   const subject = quizSettings.subject || 'Calculus';
 
   const loadQuestion = async (difficulty = quizSettings.difficulty) => {
     setLoading(true);
+    setLoadError(false);
+    setSubmitError('');
     if (difficulty !== quizSettings.difficulty) {
       setQuizSettings((prev) => ({ ...prev, difficulty }));
     }
     try {
-      const res = await apiFetch(`/questions/next?subject=${subject}&difficulty=${difficulty || 'medium'}`);
+      const exclude = seenIds.current.join(',');
+      const res = await apiFetch(
+        `/questions/next?subject=${subject}&difficulty=${difficulty || 'medium'}&exclude=${exclude}`
+      );
       if (res.status === 404) { navigate('/home/no-questions'); return; }
       if (!res.ok) throw new Error('failed');
       const q = await res.json();
+      seenIds.current.push(q.id);
       setQuestion(q);
       setSelectedAnswer('');
       setResult(null);
       setLoading(false);
     } catch (err) {
       console.error('Error fetching question:', err);
+      setLoadError(true);
       setLoading(false);
     }
   };
@@ -58,7 +72,9 @@ const Quiz = () => {
   };
 
   const handleSubmit = async () => {
-    if (!selectedAnswer || result) return;
+    if (!selectedAnswer || result || submitting) return;
+    setSubmitError('');
+    setSubmitting(true);
     try {
       const res = await apiFetch('/attempts', {
         method: 'POST',
@@ -69,8 +85,21 @@ const Quiz = () => {
       setResult({ correct: data.correct, correctAnswer: data.correctAnswer, feedback: data.feedback });
       setRating(data.rating);
       setRatingDelta(data.ratingDelta);
+      setSession((s) => {
+        const streak = data.correct ? s.streak + 1 : 0;
+        return {
+          answered: s.answered + 1,
+          correct: s.correct + (data.correct ? 1 : 0),
+          streak,
+          best: Math.max(s.best, streak),
+        };
+      });
+      setSubmitError('');
     } catch (err) {
       console.error('Error submitting answer:', err);
+      setSubmitError('Could not submit your answer. Check your connection and try again.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -87,10 +116,21 @@ const Quiz = () => {
     return <div className="quiz"><div className="quiz-loading">Loading question…</div></div>;
   }
 
+  if (loadError) {
+    return (
+      <div className="quiz">
+        <div className="quiz-error">
+          <p>We couldn't load a question. Check your connection and try again.</p>
+          <button className="btn btn-primary" onClick={() => loadQuestion()}>Retry</button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="quiz">
       <div className="quiz-topbar">
-        <span className="subject-chip">{question.subject || subject}</span>
+        <span className="subject-chip">{subjectLabel(question.subject || subject)}</span>
         <div className="elo-meter">
           <div className="elo-meter-head">
             <span className="elo-label">Your ELO</span>
@@ -101,12 +141,25 @@ const Quiz = () => {
         <span className="level-chip">Level {question.score}</span>
       </div>
 
-      <h1 className="quiz-question">{question.question}</h1>
+      {session.answered > 0 && (
+        <div className="session-strip">
+          <span><strong>{session.answered}</strong> answered</span>
+          <span className="sep">·</span>
+          <span><strong>{Math.round((session.correct / session.answered) * 100)}%</strong> correct</span>
+          <span className="sep">·</span>
+          <span className={session.streak > 0 ? 'streak streak-on' : 'streak'}>
+            streak <strong>{session.streak}</strong>
+            {session.best > 1 && <span className="streak-best"> (best {session.best})</span>}
+          </span>
+        </div>
+      )}
+
+      <h1 className="quiz-question"><MathText>{question.question}</MathText></h1>
 
       <div className="answers">
         {question.answers.map((answer, index) => (
           <button key={index} className={answerClass(answer)} onClick={() => handleSelect(answer)} disabled={!!result}>
-            {answer}
+            <MathText>{answer}</MathText>
           </button>
         ))}
       </div>
@@ -118,15 +171,19 @@ const Quiz = () => {
             <span className="elo-delta">{ratingDelta >= 0 ? `+${ratingDelta}` : ratingDelta} ELO</span>
           </div>
           {!result.correct && (
-            <p className="correct-answer">Correct answer: <strong>{result.correctAnswer}</strong></p>
+            <p className="correct-answer">Correct answer: <strong><MathText>{result.correctAnswer}</MathText></strong></p>
           )}
-          {result.feedback && <p className="explanation">{result.feedback}</p>}
+          {result.feedback && <p className="explanation"><MathText>{result.feedback}</MathText></p>}
         </div>
       )}
 
+      {submitError && <p className="quiz-submit-error">{submitError}</p>}
+
       {!result ? (
         <div className="quiz-actions">
-          <button className="btn btn-primary" onClick={handleSubmit} disabled={!selectedAnswer}>Submit answer</button>
+          <button className="btn btn-primary" onClick={handleSubmit} disabled={!selectedAnswer || submitting}>
+            {submitting ? 'Submitting…' : 'Submit answer'}
+          </button>
         </div>
       ) : (
         <div className="quiz-next">

@@ -1,17 +1,41 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const bodyParser = require('body-parser');
+const { createLimiter } = require('./middleware/rateLimit');
 const { authPool, userPool } = require('./db');
 const authRoutes = require('./auth/routes');
 const practiceRoutes = require('./routes/practice');
 const insightsRoutes = require('./routes/insights');
 
 const app = express();
-app.use(cors());
-app.use(bodyParser.json());
+app.set('trust proxy', 1); // correct client IP behind a hosting proxy (for rate limiting)
 
-app.use('/auth', authRoutes);
+const globalLimiter = createLimiter(Number(process.env.RATE_LIMIT_GLOBAL_MAX) || 300, 60 * 1000);
+const authLimiter = createLimiter(Number(process.env.RATE_LIMIT_AUTH_MAX) || 10, 15 * 60 * 1000);
+
+app.use(helmet({ frameguard: { action: 'deny' } }));
+
+const allowedOrigins = (process.env.CORS_ORIGINS || 'http://localhost:3000')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean)
+  .concat(['capacitor://localhost', 'http://localhost', 'https://localhost']); // Capacitor app origins
+app.use(
+  cors({
+    origin(origin, cb) {
+      // No Origin header = non-browser client (curl, native app, server-to-server) — allow.
+      if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+      return cb(null, false); // disallowed: respond without CORS headers (browser will block)
+    },
+  })
+);
+
+app.use(bodyParser.json());
+app.use(globalLimiter);
+
+app.use('/auth', authLimiter, authRoutes);
 app.use(practiceRoutes);
 app.use(insightsRoutes);
 
