@@ -48,23 +48,6 @@ test('signup with missing fields is rejected (400)', async () => {
   assert.strictEqual(res.status, 400);
 });
 
-test('attempts with a non-uuid questionId is rejected (400)', async () => {
-  await resetDb();
-  const s = await request(app).post('/auth/signup').send({ name: 'N', username: 'val', password: 'pw' });
-  const tok = s.body.accessToken;
-  const res = await request(app)
-    .post('/attempts')
-    .set('Authorization', `Bearer ${tok}`)
-    .send({ subject: 'Calculus', questionId: 'not-a-uuid', selectedAnswer: '4' });
-  assert.strictEqual(res.status, 400);
-});
-
-test('questions/next with a bad difficulty is rejected (400)', async () => {
-  await resetDb();
-  const s = await request(app).post('/auth/signup').send({ name: 'N', username: 'val2', password: 'pw' });
-  const tok = s.body.accessToken;
-  const res = await request(app)
-    .get('/questions/next?subject=Calculus&difficulty=banana')
-    .set('Authorization', `Bearer ${tok}`);
-  assert.strictEqual(res.status, 400);
-});
+// NOTE: input-validation tests for the drill endpoints (POST /attempts,
+// GET /cards/next) land in cards.test.js when the card engine is built (Phase 1).
+// The old academic /attempts + /questions/next routes were removed in Phase 0.
