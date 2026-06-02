@@ -1,10 +1,22 @@
 const express = require('express');
+const { z } = require('zod');
 const { userPool, withUserContext } = require('../db');
 const requireAuth = require('../middleware/requireAuth');
+const { validate } = require('../middleware/validate');
 const VALID_SUBJECTS = require('../subjects');
 const { BASE_RATING, getBounds, updateRatings } = require('../elo');
 
 const router = express.Router();
+
+const attemptSchema = z.object({
+  subject: z.string().min(1),
+  questionId: z.string().uuid(),
+  selectedAnswer: z.string(),
+});
+const nextQuerySchema = z.object({
+  subject: z.string().min(1),
+  difficulty: z.enum(['easy', 'medium', 'hard']),
+});
 
 router.get('/me/ratings/:subject', requireAuth, async (req, res) => {
   const { subject } = req.params;
@@ -23,7 +35,7 @@ router.get('/me/ratings/:subject', requireAuth, async (req, res) => {
   }
 });
 
-router.get('/questions/next', requireAuth, async (req, res) => {
+router.get('/questions/next', requireAuth, validate(nextQuerySchema, 'query'), async (req, res) => {
   const { subject, difficulty } = req.query;
   if (!VALID_SUBJECTS.includes(subject)) {
     return res.status(400).json({ error: 'Invalid subject' });
@@ -64,7 +76,7 @@ router.get('/questions/next', requireAuth, async (req, res) => {
   }
 });
 
-router.post('/attempts', requireAuth, async (req, res) => {
+router.post('/attempts', requireAuth, validate(attemptSchema), async (req, res) => {
   const { subject, questionId, selectedAnswer } = req.body;
   if (!VALID_SUBJECTS.includes(subject) || !questionId || selectedAnswer === undefined) {
     return res.status(400).json({ error: 'subject, questionId, selectedAnswer are required' });

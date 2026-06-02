@@ -1,11 +1,26 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const { z } = require('zod');
 const { authPool } = require('../db');
 const {
   signAccessToken, createRefreshToken, rotateRefreshToken, revokeRefreshToken,
 } = require('./tokens');
+const { validate } = require('../middleware/validate');
 
 const router = express.Router();
+
+const signupSchema = z.object({
+  name: z.string().min(1).max(255),
+  username: z.string().min(1).max(255),
+  password: z.string().min(1).max(255),
+});
+const loginSchema = z.object({
+  username: z.string().min(1),
+  password: z.string().min(1),
+});
+const refreshSchema = z.object({
+  refreshToken: z.string().min(1),
+});
 const SALT_ROUNDS = 10;
 
 // A real bcrypt hash to compare against when the user doesn't exist, so login
@@ -20,7 +35,7 @@ const issuePair = async (user) => ({
   refreshToken: await createRefreshToken(user.id),
 });
 
-router.post('/signup', async (req, res) => {
+router.post('/signup', validate(signupSchema), async (req, res) => {
   const { name, username, password } = req.body;
   if (!name || !username || !password) {
     return res.status(400).json({ error: 'Name, username, and password are required' });
@@ -42,7 +57,7 @@ router.post('/signup', async (req, res) => {
   }
 });
 
-router.post('/login', async (req, res) => {
+router.post('/login', validate(loginSchema), async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) {
     return res.status(400).json({ error: 'Username and password are required' });
@@ -67,7 +82,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-router.post('/refresh', async (req, res) => {
+router.post('/refresh', validate(refreshSchema), async (req, res) => {
   const { refreshToken } = req.body;
   if (!refreshToken) return res.status(400).json({ error: 'refreshToken is required' });
   try {

@@ -39,3 +39,32 @@ test('createLimiter blocks requests past the max within the window', async () =>
   const blocked = await request(mini).get('/x');
   assert.strictEqual(blocked.status, 429);
 });
+
+const { resetDb } = require('./setup');
+
+test('signup with missing fields is rejected (400)', async () => {
+  await resetDb();
+  const res = await request(app).post('/auth/signup').send({ username: 'x' });
+  assert.strictEqual(res.status, 400);
+});
+
+test('attempts with a non-uuid questionId is rejected (400)', async () => {
+  await resetDb();
+  const s = await request(app).post('/auth/signup').send({ name: 'N', username: 'val', password: 'pw' });
+  const tok = s.body.accessToken;
+  const res = await request(app)
+    .post('/attempts')
+    .set('Authorization', `Bearer ${tok}`)
+    .send({ subject: 'Calculus', questionId: 'not-a-uuid', selectedAnswer: '4' });
+  assert.strictEqual(res.status, 400);
+});
+
+test('questions/next with a bad difficulty is rejected (400)', async () => {
+  await resetDb();
+  const s = await request(app).post('/auth/signup').send({ name: 'N', username: 'val2', password: 'pw' });
+  const tok = s.body.accessToken;
+  const res = await request(app)
+    .get('/questions/next?subject=Calculus&difficulty=banana')
+    .set('Authorization', `Bearer ${tok}`);
+  assert.strictEqual(res.status, 400);
+});
