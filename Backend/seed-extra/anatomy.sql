@@ -1,6 +1,5 @@
 INSERT INTO anatomy (question, answer1, answer2, answer3, answer4, correctanswer, feedback, score, subject) VALUES
 -- SKELETAL SYSTEM (Bones & Joints) --
-('Which bone is the longest in the human body?', 'Femur', 'Tibia', 'Humerus', 'Fibula', 'Femur', 'The femur (thigh bone) is the longest and strongest bone in the human body.', 720, 'Anatomy'),
 ('How many bones are in the adult human body?', '206', '208', '212', '196', '206', 'The adult human skeleton consists of 206 bones, reduced from approximately 270 in infancy through fusion.', 750, 'Anatomy'),
 ('Which carpal bone is most commonly fractured?', 'Scaphoid', 'Lunate', 'Trapezium', 'Hamate', 'Scaphoid', 'The scaphoid is the most frequently fractured carpal bone, typically from a fall on an outstretched hand.', 980, 'Anatomy'),
 ('What type of joint is the hip joint?', 'Ball-and-socket joint', 'Hinge joint', 'Saddle joint', 'Pivot joint', 'Ball-and-socket joint', 'The hip joint is a ball-and-socket synovial joint, allowing multiaxial movement between the femoral head and the acetabulum.', 730, 'Anatomy'),

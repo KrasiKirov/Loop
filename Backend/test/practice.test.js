@@ -44,7 +44,8 @@ test('GET /questions/next returns a question WITHOUT the answer', async () => {
   assert.strictEqual(res.status, 200);
   assert.ok(res.body.id);
   assert.strictEqual(res.body.question, '2+2?');
-  assert.deepStrictEqual(res.body.answers, ['4', '3', '5', '1']);
+  // answers are shuffled per serve, so assert set-equality (not order)
+  assert.deepStrictEqual([...res.body.answers].sort(), ['1', '3', '4', '5']);
   assert.strictEqual(res.body.correctAnswer, undefined);
   assert.strictEqual(res.body.feedback, undefined);
 });
@@ -173,6 +174,26 @@ test('GET /questions/next excludes ids passed in exclude (no repeats)', async ()
     .set('Authorization', `Bearer ${t}`);
   assert.strictEqual(both.status, 200);
   assert.ok([q1, q2].includes(both.body.id));
+});
+
+test('GET /questions/next shuffles answer order (no positional tell)', async () => {
+  await resetDb();
+  const t = await token();
+  // Seed with the correct answer always in slot 1 (the generation bias we are fixing).
+  await seedQuestion({ answer1: 'RIGHT', answer2: 'w1', answer3: 'w2', answer4: 'w3', correctanswer: 'RIGHT' });
+
+  const positions = new Set();
+  for (let i = 0; i < 25; i++) {
+    const res = await request(app)
+      .get('/questions/next?subject=Calculus&difficulty=medium')
+      .set('Authorization', `Bearer ${t}`);
+    assert.strictEqual(res.status, 200);
+    // every serve returns the same 4 options, just reordered (nothing dropped or duplicated)
+    assert.deepStrictEqual([...res.body.answers].sort(), ['RIGHT', 'w1', 'w2', 'w3']);
+    positions.add(res.body.answers.indexOf('RIGHT'));
+  }
+  // across 25 serves the correct answer must land in more than one slot
+  assert.ok(positions.size > 1, `correct answer never moved (slots seen: ${[...positions]})`);
 });
 
 test.after(() => pool.end());

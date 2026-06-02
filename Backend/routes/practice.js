@@ -21,6 +21,18 @@ const nextQuerySchema = z.object({
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+// Fisher-Yates shuffle (returns a new array). Answers are stored with a strong
+// "correct option first" bias from generation; shuffling per serve removes any
+// positional tell so the slot a user clicks carries no information.
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 router.get('/me/ratings/:subject', requireAuth, async (req, res) => {
   const { subject } = req.params;
   if (!VALID_SUBJECTS.includes(subject)) {
@@ -77,7 +89,7 @@ router.get('/questions/next', requireAuth, validate(nextQuerySchema, 'query'), a
     res.json({
       id: q.id,
       question: q.question,
-      answers: [q.answer1, q.answer2, q.answer3, q.answer4],
+      answers: shuffle([q.answer1, q.answer2, q.answer3, q.answer4]),
       score: q.score,
       subject: q.subject,
     });
