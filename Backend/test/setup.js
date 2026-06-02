@@ -50,7 +50,9 @@ CREATE TABLE answers (
   is_correct BOOLEAN NOT NULL,
   question_score INTEGER NOT NULL,
   rating_after INTEGER NOT NULL,
-  created_at TIMESTAMP DEFAULT NOW()
+  question_id UUID,
+  created_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE (user_id, question_id)
 );
 CREATE TABLE calculus (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

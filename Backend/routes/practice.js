@@ -87,24 +87,35 @@ router.post('/attempts', requireAuth, async (req, res) => {
       const current = ratingQ.rows.length ? ratingQ.rows[0].rating : BASE_RATING;
       const newRating = updateRatings(current, q.score, correct ? 1 : 0);
 
-      await client.query(
-        `INSERT INTO user_ratings (user_id, subject, rating, username, updated_at)
-           VALUES ($1, $2, $3, $4, NOW())
-           ON CONFLICT (user_id, subject)
-           DO UPDATE SET rating = EXCLUDED.rating, updated_at = NOW()`,
-        [req.user.id, subject, newRating, req.user.username]
+      // Only the FIRST attempt at a question is rated. The UNIQUE(user_id, question_id)
+      // constraint makes this atomic: under concurrent submissions the DB lets exactly one
+      // insert win; the rest get DO NOTHING and leave the rating untouched (no replay farming).
+      const ins = await client.query(
+        `INSERT INTO answers (user_id, subject, is_correct, question_score, rating_after, question_id)
+           VALUES ($1, $2, $3, $4, $5, $6)
+           ON CONFLICT (user_id, question_id) DO NOTHING
+           RETURNING id`,
+        [req.user.id, subject, correct, q.score, newRating, questionId]
       );
-      await client.query(
-        `INSERT INTO answers (user_id, subject, is_correct, question_score, rating_after)
-           VALUES ($1, $2, $3, $4, $5)`,
-        [req.user.id, subject, correct, q.score, newRating]
-      );
+      const firstAttempt = ins.rows.length > 0;
+
+      if (firstAttempt) {
+        await client.query(
+          `INSERT INTO user_ratings (user_id, subject, rating, username, updated_at)
+             VALUES ($1, $2, $3, $4, NOW())
+             ON CONFLICT (user_id, subject)
+             DO UPDATE SET rating = EXCLUDED.rating, updated_at = NOW()`,
+          [req.user.id, subject, newRating, req.user.username]
+        );
+      }
+
       return {
         correct,
         correctAnswer: q.correctanswer,
         feedback: q.feedback,
-        rating: newRating,
-        ratingDelta: newRating - current,
+        rating: firstAttempt ? newRating : current,
+        ratingDelta: firstAttempt ? newRating - current : 0,
+        alreadyAnswered: !firstAttempt,
       };
     });
     if (out.notFound) return res.status(404).json({ error: 'Question not found' });

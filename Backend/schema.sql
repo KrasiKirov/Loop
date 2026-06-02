@@ -38,7 +38,9 @@ CREATE TABLE IF NOT EXISTS answers (
     is_correct     BOOLEAN NOT NULL,
     question_score INTEGER NOT NULL,
     rating_after   INTEGER NOT NULL,
-    created_at     TIMESTAMP DEFAULT NOW()
+    question_id    UUID,
+    created_at     TIMESTAMP DEFAULT NOW(),
+    UNIQUE (user_id, question_id)
 );
 CREATE INDEX IF NOT EXISTS idx_answers_user ON answers(user_id);
 

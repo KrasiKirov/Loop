@@ -110,4 +110,48 @@ test('POST /attempts 404s for an unknown question id', async () => {
   assert.strictEqual(res.status, 404);
 });
 
+test('POST /attempts rates only the first attempt; replays give no rating change', async () => {
+  await resetDb();
+  const t = await token();
+  const qid = await seedQuestion({ correctanswer: '4', score: 1000 });
+
+  const first = await request(app).post('/attempts').set('Authorization', `Bearer ${t}`)
+    .send({ subject: 'Calculus', questionId: qid, selectedAnswer: '4' });
+  assert.strictEqual(first.body.correct, true);
+  assert.ok(first.body.ratingDelta > 0);
+  const ratedTo = first.body.rating;
+
+  // Replay the SAME question with the now-known answer.
+  const replay = await request(app).post('/attempts').set('Authorization', `Bearer ${t}`)
+    .send({ subject: 'Calculus', questionId: qid, selectedAnswer: '4' });
+  assert.strictEqual(replay.status, 200);
+  assert.strictEqual(replay.body.correct, true);       // still graded for learning
+  assert.strictEqual(replay.body.ratingDelta, 0);      // but no rating change
+  assert.strictEqual(replay.body.rating, ratedTo);     // rating unchanged
+  assert.strictEqual(replay.body.alreadyAnswered, true);
+
+  // only one answers row exists for that question
+  const cnt = await pool.query('SELECT count(*)::int AS n FROM answers');
+  assert.strictEqual(cnt.rows[0].n, 1);
+});
+
+test('POST /attempts: 10 concurrent submissions of the same question rate only once', async () => {
+  await resetDb();
+  const t = await token();
+  const qid = await seedQuestion({ correctanswer: '4', score: 1000 });
+
+  const results = await Promise.all(
+    Array.from({ length: 10 }, () =>
+      request(app).post('/attempts').set('Authorization', `Bearer ${t}`)
+        .send({ subject: 'Calculus', questionId: qid, selectedAnswer: '4' })
+    )
+  );
+  // exactly one submission was rated; the rest got ratingDelta 0
+  const rated = results.filter((r) => r.body.ratingDelta !== 0);
+  assert.strictEqual(rated.length, 1);
+  // exactly one answers row was recorded
+  const cnt = await pool.query('SELECT count(*)::int AS n FROM answers');
+  assert.strictEqual(cnt.rows[0].n, 1);
+});
+
 test.after(() => pool.end());
