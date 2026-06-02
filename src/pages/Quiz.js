@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './Quiz.css';
 import { useQuizSettings } from '../QuizContext';
 import { apiFetch } from '../api/client';
+import { subjectLabel } from '../subjectLabels';
 
 const BASE_RATING = 1000;
 const EMPTY = { id: '', question: '', answers: [], score: 0, subject: '' };
@@ -95,7 +96,7 @@ const Quiz = () => {
   return (
     <div className="quiz">
       <div className="quiz-topbar">
-        <span className="subject-chip">{question.subject || subject}</span>
+        <span className="subject-chip">{subjectLabel(question.subject || subject)}</span>
         <div className="elo-meter">
           <div className="elo-meter-head">
             <span className="elo-label">Your ELO</span>

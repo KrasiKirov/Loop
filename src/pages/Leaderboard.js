@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../api/client';
+import { subjectLabel } from '../subjectLabels';
 import './Leaderboard.css';
 
 const SUBJECT_GROUPS = [
@@ -51,7 +52,7 @@ const Leaderboard = () => {
         <select className="subject-select" value={subject} onChange={(e) => setSubject(e.target.value)}>
           {SUBJECT_GROUPS.map((g) => (
             <optgroup key={g.label} label={g.label}>
-              {g.subjects.map((s) => <option key={s} value={s}>{s}</option>)}
+              {g.subjects.map((s) => <option key={s} value={s}>{subjectLabel(s)}</option>)}
             </optgroup>
           ))}
         </select>
