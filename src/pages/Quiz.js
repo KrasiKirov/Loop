@@ -4,6 +4,7 @@ import './Quiz.css';
 import { useQuizSettings } from '../QuizContext';
 import { apiFetch } from '../api/client';
 import { subjectLabel } from '../subjectLabels';
+import MathText from '../components/MathText';
 
 const BASE_RATING = 1000;
 const EMPTY = { id: '', question: '', answers: [], score: 0, subject: '' };
@@ -18,6 +19,7 @@ const Quiz = () => {
   const [rating, setRating] = useState(BASE_RATING);
   const [ratingDelta, setRatingDelta] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [session, setSession] = useState({ answered: 0, correct: 0, streak: 0, best: 0 });
   const seenIds = useRef([]); // questions already shown this session (no repeats)
 
   const subject = quizSettings.subject || 'Calculus';
@@ -75,6 +77,15 @@ const Quiz = () => {
       setResult({ correct: data.correct, correctAnswer: data.correctAnswer, feedback: data.feedback });
       setRating(data.rating);
       setRatingDelta(data.ratingDelta);
+      setSession((s) => {
+        const streak = data.correct ? s.streak + 1 : 0;
+        return {
+          answered: s.answered + 1,
+          correct: s.correct + (data.correct ? 1 : 0),
+          streak,
+          best: Math.max(s.best, streak),
+        };
+      });
     } catch (err) {
       console.error('Error submitting answer:', err);
     }
@@ -107,12 +118,25 @@ const Quiz = () => {
         <span className="level-chip">Level {question.score}</span>
       </div>
 
-      <h1 className="quiz-question">{question.question}</h1>
+      {session.answered > 0 && (
+        <div className="session-strip">
+          <span><strong>{session.answered}</strong> answered</span>
+          <span className="sep">·</span>
+          <span><strong>{Math.round((session.correct / session.answered) * 100)}%</strong> correct</span>
+          <span className="sep">·</span>
+          <span className={session.streak > 0 ? 'streak streak-on' : 'streak'}>
+            streak <strong>{session.streak}</strong>
+            {session.best > 1 && <span className="streak-best"> (best {session.best})</span>}
+          </span>
+        </div>
+      )}
+
+      <h1 className="quiz-question"><MathText>{question.question}</MathText></h1>
 
       <div className="answers">
         {question.answers.map((answer, index) => (
           <button key={index} className={answerClass(answer)} onClick={() => handleSelect(answer)} disabled={!!result}>
-            {answer}
+            <MathText>{answer}</MathText>
           </button>
         ))}
       </div>
@@ -124,9 +148,9 @@ const Quiz = () => {
             <span className="elo-delta">{ratingDelta >= 0 ? `+${ratingDelta}` : ratingDelta} ELO</span>
           </div>
           {!result.correct && (
-            <p className="correct-answer">Correct answer: <strong>{result.correctAnswer}</strong></p>
+            <p className="correct-answer">Correct answer: <strong><MathText>{result.correctAnswer}</MathText></strong></p>
           )}
-          {result.feedback && <p className="explanation">{result.feedback}</p>}
+          {result.feedback && <p className="explanation"><MathText>{result.feedback}</MathText></p>}
         </div>
       )}
 
