@@ -154,4 +154,25 @@ test('POST /attempts: 10 concurrent submissions of the same question rate only o
   assert.strictEqual(cnt.rows[0].n, 1);
 });
 
+test('GET /questions/next excludes ids passed in exclude (no repeats)', async () => {
+  await resetDb();
+  const t = await token();
+  const q1 = await seedQuestion({ question: 'Q1' });
+  const q2 = await seedQuestion({ question: 'Q2' });
+
+  // exclude q1 -> must return the other question
+  const res = await request(app)
+    .get(`/questions/next?subject=Calculus&difficulty=medium&exclude=${q1}`)
+    .set('Authorization', `Bearer ${t}`);
+  assert.strictEqual(res.status, 200);
+  assert.strictEqual(res.body.id, q2);
+
+  // exclude both -> falls back to a repeat (one of them) rather than 404
+  const both = await request(app)
+    .get(`/questions/next?subject=Calculus&difficulty=medium&exclude=${q1},${q2}`)
+    .set('Authorization', `Bearer ${t}`);
+  assert.strictEqual(both.status, 200);
+  assert.ok([q1, q2].includes(both.body.id));
+});
+
 test.after(() => pool.end());

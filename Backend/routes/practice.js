@@ -16,7 +16,10 @@ const attemptSchema = z.object({
 const nextQuerySchema = z.object({
   subject: z.string().min(1),
   difficulty: z.enum(['easy', 'medium', 'hard']),
+  exclude: z.string().optional(),
 });
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 router.get('/me/ratings/:subject', requireAuth, async (req, res) => {
   const { subject } = req.params;
@@ -36,10 +39,12 @@ router.get('/me/ratings/:subject', requireAuth, async (req, res) => {
 });
 
 router.get('/questions/next', requireAuth, validate(nextQuerySchema, 'query'), async (req, res) => {
-  const { subject, difficulty } = req.query;
+  const { subject, difficulty, exclude } = req.query;
   if (!VALID_SUBJECTS.includes(subject)) {
     return res.status(400).json({ error: 'Invalid subject' });
   }
+  // Question ids already shown this session — only keep well-formed UUIDs.
+  const seen = (exclude ? String(exclude).split(',') : []).filter((s) => UUID_RE.test(s));
   try {
     const ratingQ = await userPool.query(
       'SELECT rating FROM user_ratings WHERE user_id = $1 AND subject = $2',
@@ -48,17 +53,23 @@ router.get('/questions/next', requireAuth, validate(nextQuerySchema, 'query'), a
     const elo = ratingQ.rows.length ? ratingQ.rows[0].rating : BASE_RATING;
     const { lower, upper } = getBounds(difficulty, elo);
     const table = subject.toLowerCase();
+    const cols = 'id, question, answer1, answer2, answer3, answer4, score, subject';
 
+    // Prefer in-band + unseen; then any unseen; then any (bank exhausted → allow a repeat).
     let pick = await userPool.query(
-      `SELECT id, question, answer1, answer2, answer3, answer4, score, subject
-         FROM ${table} WHERE score >= $1 AND score <= $2 ORDER BY random() LIMIT 1`,
-      [lower, upper]
+      `SELECT ${cols} FROM ${table}
+         WHERE score >= $1 AND score <= $2 AND id <> ALL($3::uuid[])
+         ORDER BY random() LIMIT 1`,
+      [lower, upper, seen]
     );
     if (!pick.rows.length) {
       pick = await userPool.query(
-        `SELECT id, question, answer1, answer2, answer3, answer4, score, subject
-           FROM ${table} ORDER BY random() LIMIT 1`
+        `SELECT ${cols} FROM ${table} WHERE id <> ALL($1::uuid[]) ORDER BY random() LIMIT 1`,
+        [seen]
       );
+    }
+    if (!pick.rows.length) {
+      pick = await userPool.query(`SELECT ${cols} FROM ${table} ORDER BY random() LIMIT 1`);
     }
     if (!pick.rows.length) return res.status(404).json({ error: 'No questions found' });
 

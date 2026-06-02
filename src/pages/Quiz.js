@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Quiz.css';
 import { useQuizSettings } from '../QuizContext';
@@ -17,6 +17,7 @@ const Quiz = () => {
   const [rating, setRating] = useState(BASE_RATING);
   const [ratingDelta, setRatingDelta] = useState(0);
   const [loading, setLoading] = useState(true);
+  const seenIds = useRef([]); // questions already shown this session (no repeats)
 
   const subject = quizSettings.subject || 'Calculus';
 
@@ -26,10 +27,14 @@ const Quiz = () => {
       setQuizSettings((prev) => ({ ...prev, difficulty }));
     }
     try {
-      const res = await apiFetch(`/questions/next?subject=${subject}&difficulty=${difficulty || 'medium'}`);
+      const exclude = seenIds.current.join(',');
+      const res = await apiFetch(
+        `/questions/next?subject=${subject}&difficulty=${difficulty || 'medium'}&exclude=${exclude}`
+      );
       if (res.status === 404) { navigate('/home/no-questions'); return; }
       if (!res.ok) throw new Error('failed');
       const q = await res.json();
+      seenIds.current.push(q.id);
       setQuestion(q);
       setSelectedAnswer('');
       setResult(null);
