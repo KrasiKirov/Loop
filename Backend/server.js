@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const bodyParser = require('body-parser');
+const { createLimiter } = require('./middleware/rateLimit');
 const { authPool, userPool } = require('./db');
 const authRoutes = require('./auth/routes');
 const practiceRoutes = require('./routes/practice');
@@ -10,6 +11,9 @@ const insightsRoutes = require('./routes/insights');
 
 const app = express();
 app.set('trust proxy', 1); // correct client IP behind a hosting proxy (for rate limiting)
+
+const globalLimiter = createLimiter(Number(process.env.RATE_LIMIT_GLOBAL_MAX) || 300, 60 * 1000);
+const authLimiter = createLimiter(Number(process.env.RATE_LIMIT_AUTH_MAX) || 10, 15 * 60 * 1000);
 
 app.use(helmet({ frameguard: { action: 'deny' } }));
 
@@ -29,8 +33,9 @@ app.use(
 );
 
 app.use(bodyParser.json());
+app.use(globalLimiter);
 
-app.use('/auth', authRoutes);
+app.use('/auth', authLimiter, authRoutes);
 app.use(practiceRoutes);
 app.use(insightsRoutes);
 

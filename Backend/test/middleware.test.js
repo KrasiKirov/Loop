@@ -24,3 +24,18 @@ test('CORS omits the header for a disallowed origin', async () => {
     .set('Access-Control-Request-Method', 'POST');
   assert.strictEqual(res.headers['access-control-allow-origin'], undefined);
 });
+
+const express = require('express');
+const { createLimiter } = require('../middleware/rateLimit');
+
+test('createLimiter blocks requests past the max within the window', async () => {
+  const mini = express();
+  mini.use(createLimiter(3, 60000));
+  mini.get('/x', (req, res) => res.json({ ok: true }));
+  for (let i = 0; i < 3; i++) {
+    const r = await request(mini).get('/x');
+    assert.strictEqual(r.status, 200);
+  }
+  const blocked = await request(mini).get('/x');
+  assert.strictEqual(blocked.status, 429);
+});
