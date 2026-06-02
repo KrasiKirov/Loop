@@ -17,7 +17,7 @@ const nextQuerySchema = z.object({
 const attemptSchema = z.object({
   cardId: z.string().uuid(),
   selectedAnswer: z.string(),
-  ms: z.number().int().optional(),
+  ms: z.number().int().nonnegative().optional(),
 });
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -46,9 +46,17 @@ router.get('/patterns', requireAuth, async (req, res) => {
     );
     const ratingBySlug = new Map(ratingsQ.rows.map((r) => [r.subject, r.rating]));
 
-    // srs_state is RLS-owner-private — read the due counts inside withUserContext.
-    const dueRows = await withUserContext(req.user.id, async (client) => {
-      const { rows } = await client.query(
+    // Total cards per pattern is public (cards table) — one grouped query.
+    const totalsQ = await userPool.query(
+      `SELECT p.slug, count(c.id)::int AS total
+         FROM patterns p LEFT JOIN cards c ON c.pattern_id = p.id
+        GROUP BY p.slug`
+    );
+    const totalBySlug = new Map(totalsQ.rows.map((r) => [r.slug, r.total]));
+
+    // srs_state and attempts are RLS-owner-private — read inside withUserContext.
+    const { dueRows, correctRows } = await withUserContext(req.user.id, async (client) => {
+      const due = await client.query(
         `SELECT p.slug, count(*)::int AS due
            FROM srs_state s
            JOIN cards c ON c.id = s.card_id
@@ -56,13 +64,26 @@ router.get('/patterns', requireAuth, async (req, res) => {
           WHERE s.due_at <= now()
           GROUP BY p.slug`
       );
-      return rows;
+      // Distinct cards answered CORRECTLY per pattern, for the coverage term.
+      const correct = await client.query(
+        `SELECT p.slug, count(DISTINCT a.card_id)::int AS correct
+           FROM attempts a
+           JOIN cards c ON c.id = a.card_id
+           JOIN patterns p ON p.id = c.pattern_id
+          WHERE a.is_correct
+          GROUP BY p.slug`
+      );
+      return { dueRows: due.rows, correctRows: correct.rows };
     });
     const dueBySlug = new Map(dueRows.map((r) => [r.slug, r.due]));
+    const correctBySlug = new Map(correctRows.map((r) => [r.slug, r.correct]));
 
     const out = patternsQ.rows.map((p) => {
       const rating = ratingBySlug.has(p.slug) ? ratingBySlug.get(p.slug) : BASE_RATING;
-      const mastery = Math.max(0, Math.min(1, (rating - 700) / (2000 - 700)));
+      const total = totalBySlug.get(p.slug) || 0;
+      const coverage = total > 0 ? (correctBySlug.get(p.slug) || 0) / total : 0;
+      const ratingTerm = Math.max(0, Math.min(1, (rating - 700) / 1300));
+      const mastery = Math.round((0.7 * ratingTerm + 0.3 * coverage) * 100) / 100;
       return {
         slug: p.slug,
         name: p.name,
@@ -97,42 +118,42 @@ router.get('/cards/next', requireAuth, validate(nextQuerySchema, 'query'), async
     const { lower, upper } = getBounds(difficulty, elo);
     const cols = 'c.id, c.format, c.prompt, c.code, c.answer1, c.answer2, c.answer3, c.answer4, c.rating';
     const from = `cards c JOIN patterns p ON p.id = c.pattern_id`;
+    // No-repeat is enforced by a correlated NOT EXISTS against `attempts`. Inside
+    // withUserContext the attempts RLS auto-scopes to this user, so the subquery
+    // sees only their attempts — no user_id predicate or pre-fetch needed.
+    const notAttempted = 'NOT EXISTS (SELECT 1 FROM attempts a WHERE a.card_id = c.id)';
 
-    // The user's prior attempts (RLS-private). Fetch once for the no-repeat filter.
-    const attempted = await withUserContext(req.user.id, async (client) => {
-      const { rows } = await client.query('SELECT card_id FROM attempts WHERE user_id = $1', [
-        req.user.id,
-      ]);
-      return rows.map((r) => r.card_id);
-    });
-
-    // Tier 1: in-band, not excluded, not previously attempted.
-    let pick = await userPool.query(
-      `SELECT ${cols} FROM ${from}
-         WHERE p.slug = $1 AND c.rating >= $2 AND c.rating <= $3
-           AND c.id <> ALL($4::uuid[]) AND c.id <> ALL($5::uuid[])
-         ORDER BY random() LIMIT 1`,
-      [pattern, lower, upper, seen, attempted]
-    );
-    // Tier 2: any unseen (not excluded, not attempted).
-    if (!pick.rows.length) {
-      pick = await userPool.query(
+    // cards/patterns are public-read, so they remain readable inside the user context.
+    const pick = await withUserContext(req.user.id, async (client) => {
+      // Tier 1: in-band, not excluded, not previously attempted.
+      let q = await client.query(
         `SELECT ${cols} FROM ${from}
-           WHERE p.slug = $1 AND c.id <> ALL($2::uuid[]) AND c.id <> ALL($3::uuid[])
+           WHERE p.slug = $1 AND c.rating >= $2 AND c.rating <= $3
+             AND c.id <> ALL($4::uuid[]) AND ${notAttempted}
            ORDER BY random() LIMIT 1`,
-        [pattern, seen, attempted]
+        [pattern, lower, upper, seen]
       );
-    }
-    // Tier 3: any card in the pattern (bank exhausted → allow a repeat).
-    if (!pick.rows.length) {
-      pick = await userPool.query(
-        `SELECT ${cols} FROM ${from} WHERE p.slug = $1 ORDER BY random() LIMIT 1`,
-        [pattern]
-      );
-    }
-    if (!pick.rows.length) return res.status(404).json({ error: 'No cards found' });
+      // Tier 2: any unseen (not excluded, not attempted).
+      if (!q.rows.length) {
+        q = await client.query(
+          `SELECT ${cols} FROM ${from}
+             WHERE p.slug = $1 AND c.id <> ALL($2::uuid[]) AND ${notAttempted}
+             ORDER BY random() LIMIT 1`,
+          [pattern, seen]
+        );
+      }
+      // Tier 3: any card in the pattern (bank exhausted → allow a repeat).
+      if (!q.rows.length) {
+        q = await client.query(
+          `SELECT ${cols} FROM ${from} WHERE p.slug = $1 ORDER BY random() LIMIT 1`,
+          [pattern]
+        );
+      }
+      return q.rows;
+    });
+    if (!pick.length) return res.status(404).json({ error: 'No cards found' });
 
-    const c = pick.rows[0];
+    const c = pick[0];
     res.json({
       id: c.id,
       format: c.format,

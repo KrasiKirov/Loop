@@ -88,6 +88,35 @@ test('GET /cards/next excludes the exclude ids', async () => {
   assert.strictEqual(res.body.id, b);
 });
 
+test('GET /cards/next does not repeat an attempted card, but falls back when all seen', async () => {
+  await resetDb();
+  const t = await token();
+  const a = await seedCard({ rating: 1000 });
+  const b = await seedCard({ rating: 1000 });
+
+  // Attempt A; /cards/next (no exclude) must return the unseen card B.
+  await request(app)
+    .post('/attempts')
+    .set('Authorization', `Bearer ${t}`)
+    .send({ cardId: a, selectedAnswer: 'Sliding Window' });
+  const r1 = await request(app)
+    .get('/cards/next?pattern=sliding-window&difficulty=medium')
+    .set('Authorization', `Bearer ${t}`);
+  assert.strictEqual(r1.status, 200);
+  assert.strictEqual(r1.body.id, b);
+
+  // After attempting BOTH, tier-3 repeat fallback returns one of them (not 404).
+  await request(app)
+    .post('/attempts')
+    .set('Authorization', `Bearer ${t}`)
+    .send({ cardId: b, selectedAnswer: 'Sliding Window' });
+  const r2 = await request(app)
+    .get('/cards/next?pattern=sliding-window&difficulty=medium')
+    .set('Authorization', `Bearer ${t}`);
+  assert.strictEqual(r2.status, 200);
+  assert.ok([a, b].includes(r2.body.id));
+});
+
 test('POST /attempts requires a token', async () => {
   await resetDb();
   const res = await request(app)
@@ -205,7 +234,8 @@ test('GET /patterns lists all 18 patterns with rating/mastery/due', async () => 
   assert.strictEqual(res.body.length, 18);
   const sw = res.body.find((p) => p.slug === 'sliding-window');
   assert.strictEqual(sw.rating, 1000);
-  assert.ok(Math.abs(sw.mastery - (1000 - 700) / 1300) < 1e-9);
+  // mastery = 0.7*clamp((1000-700)/1300) + 0.3*coverage(=0, no cards), rounded to 2dp
+  assert.strictEqual(sw.mastery, Math.round(0.7 * ((1000 - 700) / 1300) * 100) / 100);
   assert.strictEqual(sw.due, 0);
   // ordered by sort_order
   assert.strictEqual(res.body[0].slug, 'arrays-hashing');
