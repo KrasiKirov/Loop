@@ -1,6 +1,6 @@
 const express = require('express');
 const { z } = require('zod');
-const { userPool, withUserContext } = require('../db');
+const { authPool, userPool, withUserContext } = require('../db');
 const requireAuth = require('../middleware/requireAuth');
 const { validate } = require('../middleware/validate');
 const { VALID_PATTERN_SLUGS } = require('../patterns');
@@ -19,6 +19,23 @@ const attemptSchema = z.object({
   selectedAnswer: z.string(),
   ms: z.number().int().nonnegative().optional(),
 });
+const goalSchema = z.object({
+  goalDate: z
+    .string()
+    .refine((s) => /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(Date.parse(s)), {
+      message: 'Invalid date',
+    }),
+});
+
+// Days from today (UTC midnight) to the given YYYY-MM-DD goal date.
+function daysUntil(goalDate) {
+  if (!goalDate) return null;
+  const today = new Date();
+  const todayUtc = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+  const [y, m, d] = goalDate.split('-').map(Number);
+  const goalUtc = Date.UTC(y, m - 1, d);
+  return Math.round((goalUtc - todayUtc) / 86400000);
+}
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -259,6 +276,122 @@ router.get('/me/ratings/:pattern', requireAuth, async (req, res) => {
     res.json({ pattern, rating: rows.length ? rows[0].rating : BASE_RATING });
   } catch (err) {
     console.error('Error fetching rating:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// The single most-overdue due card for review (same shape as /cards/next, no key).
+router.get('/review/next', requireAuth, async (req, res) => {
+  try {
+    const pick = await withUserContext(req.user.id, async (client) => {
+      const q = await client.query(
+        `SELECT c.id, c.format, c.prompt, c.code,
+                c.answer1, c.answer2, c.answer3, c.answer4, c.rating, p.slug AS pattern
+           FROM srs_state s
+           JOIN cards c ON c.id = s.card_id
+           JOIN patterns p ON p.id = c.pattern_id
+          WHERE s.due_at <= now()
+          ORDER BY s.due_at ASC
+          LIMIT 1`
+      );
+      return q.rows;
+    });
+    if (!pick.length) return res.json({ empty: true });
+    const c = pick[0];
+    res.json({
+      id: c.id,
+      format: c.format,
+      prompt: c.prompt,
+      code: c.code,
+      answers: shuffle([c.answer1, c.answer2, c.answer3, c.answer4]),
+      rating: c.rating,
+      pattern: c.pattern,
+    });
+  } catch (err) {
+    console.error('Error fetching review card:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Count of cards due now, plus a per-pattern breakdown.
+router.get('/review/queue', requireAuth, async (req, res) => {
+  try {
+    const rows = await withUserContext(req.user.id, async (client) => {
+      const q = await client.query(
+        `SELECT p.slug, count(*)::int AS due
+           FROM srs_state s
+           JOIN cards c ON c.id = s.card_id
+           JOIN patterns p ON p.id = c.pattern_id
+          WHERE s.due_at <= now()
+          GROUP BY p.slug`
+      );
+      return q.rows;
+    });
+    const byPattern = {};
+    let due = 0;
+    for (const r of rows) {
+      byPattern[r.slug] = r.due;
+      due += r.due;
+    }
+    res.json({ due, byPattern });
+  } catch (err) {
+    console.error('Error fetching review queue:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Streak (consecutive days with >= 1 attempt ending today/yesterday), totals, goal.
+router.get('/me/stats', requireAuth, async (req, res) => {
+  try {
+    const { answered, days } = await withUserContext(req.user.id, async (client) => {
+      const total = await client.query('SELECT count(*)::int AS n FROM attempts');
+      const distinct = await client.query(
+        `SELECT DISTINCT DATE(created_at) AS d FROM attempts ORDER BY d DESC`
+      );
+      return { answered: total.rows[0].n, days: distinct.rows.map((r) => r.d) };
+    });
+
+    // Count the consecutive run of calendar days ending today (or yesterday if
+    // there's no attempt today yet). days[] is DESC; each is a JS Date at midnight.
+    let streak = 0;
+    if (days.length) {
+      const today = new Date();
+      const todayMid = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+      const dayMs = (dt) => Date.UTC(dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate());
+      const newest = dayMs(days[0]);
+      const gapFromToday = Math.round((todayMid - newest) / 86400000);
+      if (gapFromToday === 0 || gapFromToday === 1) {
+        streak = 1;
+        for (let i = 1; i < days.length; i++) {
+          const diff = Math.round((dayMs(days[i - 1]) - dayMs(days[i])) / 86400000);
+          if (diff === 1) streak++;
+          else break;
+        }
+      }
+    }
+
+    const goalQ = await authPool.query('SELECT goal_date FROM users WHERE id = $1', [req.user.id]);
+    const raw = goalQ.rows.length ? goalQ.rows[0].goal_date : null;
+    const goalDate = raw
+      ? `${raw.getFullYear()}-${String(raw.getMonth() + 1).padStart(2, '0')}-${String(
+          raw.getDate()
+        ).padStart(2, '0')}`
+      : null;
+    res.json({ streak, answered, goalDate, daysLeft: daysUntil(goalDate) });
+  } catch (err) {
+    console.error('Error fetching stats:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Set the user's target interview date.
+router.put('/me/goal', requireAuth, validate(goalSchema), async (req, res) => {
+  const { goalDate } = req.body;
+  try {
+    await authPool.query('UPDATE users SET goal_date = $1 WHERE id = $2', [goalDate, req.user.id]);
+    res.json({ goalDate, daysLeft: daysUntil(goalDate) });
+  } catch (err) {
+    console.error('Error setting goal:', err);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
