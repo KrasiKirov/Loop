@@ -20,8 +20,8 @@ function Navbar() {
         </NavLink>
 
         <div className="navbar-links">
-          <NavLink className="navbar-link" to="/home/leaderboard">Leaderboard</NavLink>
-          <NavLink className="navbar-link" to="/home/stats">Profile</NavLink>
+          <NavLink className="navbar-link" to="/home">Patterns</NavLink>
+          {/* Leaderboard + Profile return in Phases 5/3 (leagues, mastery stats). */}
         </div>
 
         <div className="navbar-right">

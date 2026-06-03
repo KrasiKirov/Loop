@@ -1,0 +1,17 @@
+.code-block {
+  margin: 0;
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface-raised, #0f1c24);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  text-align: left;
+}
+
+.code-block code {
+  font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, Consolas, monospace);
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text);
+  white-space: pre;
+}
