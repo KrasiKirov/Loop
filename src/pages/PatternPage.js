@@ -1,7 +1,7 @@
 import React from 'react';
-import { Helmet } from 'react-helmet';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useQuizSettings } from '../QuizContext';
+import { patternLabel } from '../patternLabels';
 import '../subject.css';
 
 const LEVELS = [
@@ -10,39 +10,26 @@ const LEVELS = [
   { key: 'hard', label: 'Hard', desc: 'Push your limits', pips: 3 },
 ];
 
-/**
- * Shared layout for a single topic (e.g. Calculus).
- * @param {string} subject - DB table/subject name sent to the quiz.
- * @param {string} title - Display title.
- * @param {string} description - Short blurb.
- * @param {Array<{label: string, to?: string}>} breadcrumb - Trail items.
- */
-const TopicPage = ({ subject, title, description, breadcrumb = [] }) => {
+const PatternPage = () => {
+  const { slug } = useParams();
   const { setQuizSettings } = useQuizSettings();
   const navigate = useNavigate();
 
   const start = (difficulty) => {
-    setQuizSettings({ subject, difficulty });
-    navigate('/home/quiz');
+    setQuizSettings({ pattern: slug, difficulty });
+    navigate('/home/drill');
   };
 
   return (
     <div className="subject-page">
-      <Helmet>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" />
-      </Helmet>
-
       <div className="subject-head">
         <nav className="breadcrumb">
-          {breadcrumb.map((item, i) => (
-            <React.Fragment key={i}>
-              {i > 0 && <span className="sep">/</span>}
-              {item.to ? <Link to={item.to}>{item.label}</Link> : <span>{item.label}</span>}
-            </React.Fragment>
-          ))}
+          <Link to="/home">Patterns</Link>
+          <span className="sep">/</span>
+          <span>{patternLabel(slug)}</span>
         </nav>
-        <h1>{title}</h1>
-        {description && <p>{description}</p>}
+        <h1>{patternLabel(slug)}</h1>
+        <p>Choose a difficulty to start drilling. Your rating adapts as you go.</p>
       </div>
 
       <div className="difficulty-grid">
@@ -69,4 +56,4 @@ const TopicPage = ({ subject, title, description, breadcrumb = [] }) => {
   );
 };
 
-export default TopicPage;
+export default PatternPage;

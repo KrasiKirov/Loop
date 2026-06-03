@@ -1,33 +1,49 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './Quiz.css';
+import './Drill.css';
 import { useQuizSettings } from '../QuizContext';
 import { apiFetch } from '../api/client';
-import { subjectLabel } from '../subjectLabels';
 import MathText from '../components/MathText';
+import CodeBlock from '../components/CodeBlock';
+import { patternLabel, formatLabel } from '../patternLabels';
 
 const BASE_RATING = 1000;
-const EMPTY = { id: '', question: '', answers: [], score: 0, subject: '' };
+const EMPTY = { id: '', format: '', prompt: '', code: null, answers: [], rating: 0 };
 
-const Quiz = () => {
+const Drill = () => {
   const { quizSettings, setQuizSettings } = useQuizSettings();
   const navigate = useNavigate();
 
-  const [question, setQuestion] = useState(EMPTY);
+  const [card, setCard] = useState(EMPTY);
   const [selectedAnswer, setSelectedAnswer] = useState('');
-  const [result, setResult] = useState(null); // { correct, correctAnswer, feedback }
+  const [result, setResult] = useState(null); // { correct, correctAnswer, explanation }
   const [rating, setRating] = useState(BASE_RATING);
   const [ratingDelta, setRatingDelta] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const [noCards, setNoCards] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [session, setSession] = useState({ answered: 0, correct: 0, streak: 0, best: 0 });
-  const seenIds = useRef([]); // questions already shown this session (no repeats)
+  const seenIds = useRef([]);      // cards already shown this session (no repeats)
+  const startedAt = useRef(Date.now()); // for timing the answer (ms)
 
-  const subject = quizSettings.subject || 'Calculus';
+  const pattern = quizSettings.pattern;
 
-  const loadQuestion = async (difficulty = quizSettings.difficulty) => {
+  useEffect(() => {
+    if (!pattern) { navigate('/home'); return; }
+    const init = async () => {
+      try {
+        const r = await apiFetch(`/me/ratings/${pattern}`);
+        if (r.ok) setRating((await r.json()).rating);
+      } catch (err) { /* display only */ }
+      await loadCard(quizSettings.difficulty);
+    };
+    init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const loadCard = async (difficulty = quizSettings.difficulty) => {
     setLoading(true);
     setLoadError(false);
     setSubmitError('');
@@ -37,34 +53,23 @@ const Quiz = () => {
     try {
       const exclude = seenIds.current.join(',');
       const res = await apiFetch(
-        `/questions/next?subject=${subject}&difficulty=${difficulty || 'medium'}&exclude=${exclude}`
+        `/cards/next?pattern=${pattern}&difficulty=${difficulty || 'medium'}&exclude=${exclude}`
       );
-      if (res.status === 404) { navigate('/home/no-questions'); return; }
+      if (res.status === 404) { setNoCards(true); setLoading(false); return; }
       if (!res.ok) throw new Error('failed');
-      const q = await res.json();
-      seenIds.current.push(q.id);
-      setQuestion(q);
+      const c = await res.json();
+      seenIds.current.push(c.id);
+      startedAt.current = Date.now();
+      setCard(c);
       setSelectedAnswer('');
       setResult(null);
       setLoading(false);
     } catch (err) {
-      console.error('Error fetching question:', err);
+      console.error('Error fetching card:', err);
       setLoadError(true);
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    const init = async () => {
-      try {
-        const r = await apiFetch(`/me/ratings/${subject}`);
-        if (r.ok) setRating((await r.json()).rating);
-      } catch (err) { /* display only */ }
-      await loadQuestion(quizSettings.difficulty);
-    };
-    init();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const handleSelect = (answer) => {
     if (result) return;
@@ -78,11 +83,11 @@ const Quiz = () => {
     try {
       const res = await apiFetch('/attempts', {
         method: 'POST',
-        body: { subject, questionId: question.id, selectedAnswer },
+        body: { cardId: card.id, selectedAnswer, ms: Date.now() - startedAt.current },
       });
       if (!res.ok) throw new Error('failed');
       const data = await res.json();
-      setResult({ correct: data.correct, correctAnswer: data.correctAnswer, feedback: data.feedback });
+      setResult({ correct: data.correct, correctAnswer: data.correctAnswer, explanation: data.explanation });
       setRating(data.rating);
       setRatingDelta(data.ratingDelta);
       setSession((s) => {
@@ -94,7 +99,6 @@ const Quiz = () => {
           best: Math.max(s.best, streak),
         };
       });
-      setSubmitError('');
     } catch (err) {
       console.error('Error submitting answer:', err);
       setSubmitError('Could not submit your answer. Check your connection and try again.');
@@ -113,32 +117,44 @@ const Quiz = () => {
   const bandProgress = Math.max(0, Math.min(100, rating % 100));
 
   if (loading) {
-    return <div className="quiz"><div className="quiz-loading">Loading question…</div></div>;
+    return <div className="drill"><div className="drill-loading">Loading card…</div></div>;
+  }
+
+  if (noCards) {
+    return (
+      <div className="drill">
+        <div className="drill-error">
+          <p>No cards yet for {patternLabel(pattern)}. More patterns are on the way.</p>
+          <button className="btn btn-primary" onClick={() => navigate('/home')}>Back to patterns</button>
+        </div>
+      </div>
+    );
   }
 
   if (loadError) {
     return (
-      <div className="quiz">
-        <div className="quiz-error">
-          <p>We couldn't load a question. Check your connection and try again.</p>
-          <button className="btn btn-primary" onClick={() => loadQuestion()}>Retry</button>
+      <div className="drill">
+        <div className="drill-error">
+          <p>We couldn't load a card. Check your connection and try again.</p>
+          <button className="btn btn-primary" onClick={() => loadCard()}>Retry</button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="quiz">
-      <div className="quiz-topbar">
-        <span className="subject-chip">{subjectLabel(question.subject || subject)}</span>
+    <div className="drill">
+      <div className="drill-topbar">
+        <span className="pattern-chip">{patternLabel(pattern)}</span>
+        <span className="format-chip">{formatLabel(card.format)}</span>
         <div className="elo-meter">
           <div className="elo-meter-head">
-            <span className="elo-label">Your ELO</span>
+            <span className="elo-label">Your rating</span>
             <span className="elo-value">{rating}</span>
           </div>
           <div className="elo-bar"><div className="elo-bar-fill" style={{ width: `${bandProgress}%` }} /></div>
         </div>
-        <span className="level-chip">Level {question.score}</span>
+        <span className="level-chip">Level {card.rating}</span>
       </div>
 
       {session.answered > 0 && (
@@ -154,10 +170,11 @@ const Quiz = () => {
         </div>
       )}
 
-      <h1 className="quiz-question"><MathText>{question.question}</MathText></h1>
+      <h1 className="drill-prompt"><MathText>{card.prompt}</MathText></h1>
+      <CodeBlock code={card.code} />
 
       <div className="answers">
-        {question.answers.map((answer, index) => (
+        {card.answers.map((answer, index) => (
           <button key={index} className={answerClass(answer)} onClick={() => handleSelect(answer)} disabled={!!result}>
             <MathText>{answer}</MathText>
           </button>
@@ -168,30 +185,30 @@ const Quiz = () => {
         <div className={`feedback ${result.correct ? 'feedback-correct' : 'feedback-wrong'}`}>
           <div className="feedback-head">
             <strong>{result.correct ? 'Correct' : 'Incorrect'}</strong>
-            <span className="elo-delta">{ratingDelta >= 0 ? `+${ratingDelta}` : ratingDelta} ELO</span>
+            <span className="elo-delta">{ratingDelta >= 0 ? `+${ratingDelta}` : ratingDelta} rating</span>
           </div>
           {!result.correct && (
             <p className="correct-answer">Correct answer: <strong><MathText>{result.correctAnswer}</MathText></strong></p>
           )}
-          {result.feedback && <p className="explanation"><MathText>{result.feedback}</MathText></p>}
+          {result.explanation && <p className="explanation"><MathText>{result.explanation}</MathText></p>}
         </div>
       )}
 
-      {submitError && <p className="quiz-submit-error">{submitError}</p>}
+      {submitError && <p className="drill-submit-error">{submitError}</p>}
 
       {!result ? (
-        <div className="quiz-actions">
+        <div className="drill-actions">
           <button className="btn btn-primary" onClick={handleSubmit} disabled={!selectedAnswer || submitting}>
             {submitting ? 'Submitting…' : 'Submit answer'}
           </button>
         </div>
       ) : (
-        <div className="quiz-next">
-          <button className="btn btn-primary" onClick={() => loadQuestion()}>Next question →</button>
+        <div className="drill-next">
+          <button className="btn btn-primary" onClick={() => loadCard()}>Next card →</button>
           <div className="next-difficulty">
             <span>Adjust difficulty:</span>
-            <button onClick={() => loadQuestion('easy')}>Easier</button>
-            <button onClick={() => loadQuestion('hard')}>Harder</button>
+            <button onClick={() => loadCard('easy')}>Easier</button>
+            <button onClick={() => loadCard('hard')}>Harder</button>
           </div>
         </div>
       )}
@@ -199,4 +216,4 @@ const Quiz = () => {
   );
 };
 
-export default Quiz;
+export default Drill;
