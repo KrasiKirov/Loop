@@ -14,7 +14,6 @@ async function token() {
 
 // Resolve the authenticated user's id from a fresh signup token, via attempts.
 async function userIdFor(t) {
-  const r = await request(app).get('/me/stats').set('Authorization', `Bearer ${t}`);
   // stats doesn't expose the id; read it from the users table instead.
   const u = await pool.query('SELECT id FROM users WHERE username = $1', ['rev']);
   return u.rows[0].id;
@@ -147,6 +146,67 @@ test('GET /me/stats: after one attempt today, answered 1 and streak 1', async ()
   const res = await request(app).get('/me/stats').set('Authorization', `Bearer ${t}`);
   assert.strictEqual(res.status, 200);
   assert.strictEqual(res.body.answered, 1);
+  assert.strictEqual(res.body.streak, 1);
+});
+
+// Insert a backdated attempt directly via the owner pool (bypasses RLS and the
+// first-attempt API path). attempts has UNIQUE(user_id, card_id), so each call
+// must use a distinct card.
+async function backdateAttempt(userId, cardId, daysAgo) {
+  await pool.query(
+    `INSERT INTO attempts (user_id, card_id, pattern_slug, is_correct, rating_after, created_at)
+       VALUES ($1, $2, 'sliding-window', true, 1000, now() - ($3 || ' days')::interval)`,
+    [userId, cardId, String(daysAgo)]
+  );
+}
+
+test('GET /me/stats: yesterday-only attempt -> streak 1', async () => {
+  await resetDb();
+  const t = await token();
+  const userId = await userIdFor(t);
+  const c = await seedCard({ rating: 1000 });
+  await backdateAttempt(userId, c, 1);
+  const res = await request(app).get('/me/stats').set('Authorization', `Bearer ${t}`);
+  assert.strictEqual(res.status, 200);
+  assert.strictEqual(res.body.streak, 1);
+});
+
+test('GET /me/stats: today + yesterday -> streak 2', async () => {
+  await resetDb();
+  const t = await token();
+  const userId = await userIdFor(t);
+  const c0 = await seedCard({ rating: 1000 });
+  const c1 = await seedCard({ rating: 1000 });
+  await backdateAttempt(userId, c0, 0);
+  await backdateAttempt(userId, c1, 1);
+  const res = await request(app).get('/me/stats').set('Authorization', `Bearer ${t}`);
+  assert.strictEqual(res.status, 200);
+  assert.strictEqual(res.body.streak, 2);
+});
+
+test('GET /me/stats: today + 2-days-ago (gap yesterday) -> streak 1', async () => {
+  await resetDb();
+  const t = await token();
+  const userId = await userIdFor(t);
+  const c0 = await seedCard({ rating: 1000 });
+  const c2 = await seedCard({ rating: 1000 });
+  await backdateAttempt(userId, c0, 0);
+  await backdateAttempt(userId, c2, 2);
+  const res = await request(app).get('/me/stats').set('Authorization', `Bearer ${t}`);
+  assert.strictEqual(res.status, 200);
+  assert.strictEqual(res.body.streak, 1);
+});
+
+test('GET /me/stats: two attempts same calendar day -> streak 1', async () => {
+  await resetDb();
+  const t = await token();
+  const userId = await userIdFor(t);
+  const cA = await seedCard({ rating: 1000 });
+  const cB = await seedCard({ rating: 1000 });
+  await backdateAttempt(userId, cA, 0);
+  await backdateAttempt(userId, cB, 0);
+  const res = await request(app).get('/me/stats').set('Authorization', `Bearer ${t}`);
+  assert.strictEqual(res.status, 200);
   assert.strictEqual(res.body.streak, 1);
 });
 

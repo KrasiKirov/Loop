@@ -343,40 +343,29 @@ router.get('/review/queue', requireAuth, async (req, res) => {
 // Streak (consecutive days with >= 1 attempt ending today/yesterday), totals, goal.
 router.get('/me/stats', requireAuth, async (req, res) => {
   try {
-    const { answered, days } = await withUserContext(req.user.id, async (client) => {
+    // Compute the streak entirely in SQL so day-bucketing and "today" share one
+    // timezone basis (the DB session) — avoids the JS/Postgres timezone mismatch.
+    // row_number trick: for days ordered DESC, (d + rn) is constant across a
+    // consecutive run, so the run containing the most recent day has grp = max(d)+1.
+    // It counts as the current streak only if that most recent day is today or yesterday.
+    const { answered, streak } = await withUserContext(req.user.id, async (client) => {
       const total = await client.query('SELECT count(*)::int AS n FROM attempts');
-      const distinct = await client.query(
-        `SELECT DISTINCT DATE(created_at) AS d FROM attempts ORDER BY d DESC`
+      const streakQ = await client.query(
+        `WITH days AS (SELECT DISTINCT created_at::date AS d FROM attempts),
+              nums AS (SELECT d, d + (row_number() OVER (ORDER BY d DESC))::int AS grp FROM days)
+         SELECT CASE
+           WHEN (SELECT max(d) FROM days) >= CURRENT_DATE - 1
+           THEN (SELECT count(*)::int FROM nums WHERE grp = (SELECT max(d) FROM days) + 1)
+           ELSE 0 END AS streak`
       );
-      return { answered: total.rows[0].n, days: distinct.rows.map((r) => r.d) };
+      return { answered: total.rows[0].n, streak: streakQ.rows[0].streak };
     });
 
-    // Count the consecutive run of calendar days ending today (or yesterday if
-    // there's no attempt today yet). days[] is DESC; each is a JS Date at midnight.
-    let streak = 0;
-    if (days.length) {
-      const today = new Date();
-      const todayMid = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
-      const dayMs = (dt) => Date.UTC(dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate());
-      const newest = dayMs(days[0]);
-      const gapFromToday = Math.round((todayMid - newest) / 86400000);
-      if (gapFromToday === 0 || gapFromToday === 1) {
-        streak = 1;
-        for (let i = 1; i < days.length; i++) {
-          const diff = Math.round((dayMs(days[i - 1]) - dayMs(days[i])) / 86400000);
-          if (diff === 1) streak++;
-          else break;
-        }
-      }
-    }
-
-    const goalQ = await authPool.query('SELECT goal_date FROM users WHERE id = $1', [req.user.id]);
-    const raw = goalQ.rows.length ? goalQ.rows[0].goal_date : null;
-    const goalDate = raw
-      ? `${raw.getFullYear()}-${String(raw.getMonth() + 1).padStart(2, '0')}-${String(
-          raw.getDate()
-        ).padStart(2, '0')}`
-      : null;
+    const goalQ = await authPool.query(
+      `SELECT to_char(goal_date, 'YYYY-MM-DD') AS goal_date FROM users WHERE id = $1`,
+      [req.user.id]
+    );
+    const goalDate = goalQ.rows.length ? goalQ.rows[0].goal_date : null;
     res.json({ streak, answered, goalDate, daysLeft: daysUntil(goalDate) });
   } catch (err) {
     console.error('Error fetching stats:', err);
