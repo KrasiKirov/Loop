@@ -4,6 +4,9 @@ const base = {
   host: process.env.DB_HOST || 'localhost',
   port: process.env.DB_PORT || 5432,
   database: process.env.DB_NAME || 'adaptive_learning',
+  // Managed Postgres (Render, Neon, Supabase, …) requires SSL. Set DB_SSL=true in
+  // production; left off for local dev, which uses trust auth without TLS.
+  ...(process.env.DB_SSL === 'true' ? { ssl: { rejectUnauthorized: false } } : {}),
 };
 
 const authPool = new Pool({
