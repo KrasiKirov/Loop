@@ -1,32 +1,91 @@
-# QuestionForger
+# Bold — Competitive DSA Interview Prep
 
-## Inspiration
-As students, we understand the time-consuming and draining nature of exam studying. Sometimes, a little extra motivation, like introducing a challenge, can make a big difference. We believe that having questions of just the right difficulty can make learning more efficient and fun. After all, what's easy and hard varies from person to person!
+A competitive, retention-first web app that drills software-engineering candidates on **data-structures-and-algorithms patterns** with fast, auto-graded cards, a chess-style skill rating, spaced repetition, and head-to-head duels. Built to fix the gap LeetCode ignores: you solve a problem on Monday and can't recall the pattern by Friday.
 
-## What it Does
-QuestionForger allows users to practice for difficult university-level courses by competing against the question's internal value and other users in the system. It offers a variety of question types, adaptive difficulty levels, and a user-friendly interface, aiming to improve learning outcomes by engaging students in a dynamic and interactive assessment experience.
+> **Live demo:** _add your deployed URL here_ · **Tech:** React · Node/Express · PostgreSQL (Row-Level Security)
 
-## How We Built It
-The website was built using full-stack development. The frontend combines React, JavaScript, HTML, and CSS, while the backend utilizes an SQL server.
+---
 
-## Challenges We Ran Into
-- Learning React was a challenge as none of us had first-hand experience with it before this project.
-- Setting up the server and resolving machine-related issues was time-consuming.
-- Fetching questions from the database was more complex than anticipated.
+## Why
 
-## What We Learned
-- Full-stack development workflow.
-- Using JSX and React.
-- How to effectively connect a server with a database.
+Most interview prep is a giant pile of problems. The pile gives *exposure* but no **retention system** (you forget the pattern a week later) and no **objective sense of where you stand**. Bold targets exactly those gaps: spaced repetition so you don't forget, and a rated, competitive loop so you always know your level and watch it climb.
 
-## What's Next for QuestionForger
-We envision QuestionForger being used in classrooms where instructors and students (with the instructor's approval) can add questions to the pool. Our next step is to add a leaderboard to foster a fun, competitive environment.
+## What it does
 
-## Built With
-- JavaScript
-- React.js
-- SQL
-- HTML
-- CSS
-- Git
-- GitHub
+- **Adaptive drilling.** Pick a DSA pattern, pick a difficulty, and drill cards that adapt to your per-pattern rating. Every answer is graded server-side and moves your rating like a chess Elo.
+- **Four fast card formats** — the skills that actually decay, drilled in seconds:
+  - **Identify the pattern** — "which pattern solves this?"
+  - **Crux step** — the one key line/insight, not the whole solution
+  - **Complexity** — time/space analysis under pressure
+  - **Spot the bug** — a short snippet with a real defect
+- **Spaced repetition.** A Leitner schedule resurfaces cards right before you'd forget them; a "review your due cards" mode keeps retention high.
+- **Async duels.** Race a friend — or an auto-generated **ghost opponent** at your level — through a card set. Fastest with the most correct wins, and your overall Elo moves. Works even with no one else online.
+- **Leagues.** Per-pattern leaderboards, a duel-rating ladder, and a weekly league.
+- **Momentum.** Streaks and an interview-date countdown.
+
+**Content:** 5 fully-stocked patterns (Sliding Window, Two Pointers, Binary Search, Stack, Arrays & Hashing — ~25 cards each across all four formats) plus starter cards for the rest of the Blind-75 / NeetCode taxonomy.
+
+## Engineering highlights
+
+The interesting part isn't the quiz — it's that it's built like a real product:
+
+- **Server-authoritative grading.** Answer keys are never sent to the browser before you answer; the server grades and computes the rating, so the client can't cheat its score.
+- **PostgreSQL Row-Level Security.** Every user's attempts, review state, and duels are isolated at the database layer by per-row policies and a two-role least-privilege setup — not just application checks.
+- **Replay-safe & race-safe rating.** First-attempt-only rating via a uniqueness constraint (no farming); duel resolution is serialized with a row lock + atomic claim, so concurrent submits can't double-apply Elo or deadlock.
+- **Token auth** with refresh-token rotation and reuse detection; rate limiting, security headers, a CORS allowlist, and schema validation on every request.
+- **Content integrity at the schema level** — a `CHECK` constraint rejects a card whose "correct" answer isn't one of its options, so bad content fails loudly at insert.
+- **Tested:** ~86 backend tests (auth, grading, rating, spaced repetition, duels incl. a concurrency test, RLS, leaderboards) and frontend tests, all green.
+
+## Tech stack
+
+| Layer | Tech |
+|---|---|
+| Frontend | React (CRA), React Router |
+| Backend | Node.js, Express |
+| Database | PostgreSQL — UUID keys, Row-Level Security, two-role least privilege |
+| Auth | JWT access + rotating refresh tokens (bcrypt) |
+| Tests | `node:test` + supertest (backend), Jest + Testing Library (frontend) |
+
+## Run it locally
+
+**Prerequisites:** Node 18+, PostgreSQL.
+
+```bash
+# 1. Database + content
+createdb adaptive_learning
+cd Backend
+npm install
+DB_NAME=adaptive_learning npm run setup-db    # schema + roles + 151 cards
+cp .env.example .env                           # defaults work for local trust auth
+npm start                                       # backend on :3000
+
+# 2. Frontend (in a second terminal, from the repo root)
+npm install
+echo "REACT_APP_API_URL=http://localhost:3000" > .env
+npm start                                       # serves on :3001; sign up and drill
+```
+
+Run the tests:
+
+```bash
+cd Backend && npm test          # backend
+npm test                        # frontend (from repo root)
+```
+
+## Deploy
+
+See **[docs/DEPLOY.md](docs/DEPLOY.md)** — a minimal managed-Postgres + Node + static-host setup (Render / Neon / Vercel), including the one-time `setup-db` bootstrap for the RLS roles.
+
+## Status & roadmap
+
+The full planned feature set — adaptive drilling, spaced repetition, duels, and leagues — is implemented and tested. Natural next steps: expand the remaining patterns to full decks, server-measured duel timing (today the tiebreak trusts client timing), and a richer profile/analytics page.
+
+A longer product writeup lives in **[docs/PRODUCT-OVERVIEW.md](docs/PRODUCT-OVERVIEW.md)**.
+
+## Origin
+
+Refactored in place from an earlier academic adaptive-learning quiz app (16 university subjects, ~960 questions) that shared the same adaptive-Elo engine; that version is preserved on the `academic-archive` branch. The pivot reused the hardened backend (auth, RLS, server-side grading, the rating engine) and swapped the content domain for DSA interview patterns plus the competitive/retention mechanics.
+
+## License
+
+[MIT](LICENSE)
