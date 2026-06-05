@@ -7,6 +7,7 @@ const { createLimiter } = require('./middleware/rateLimit');
 const { authPool, userPool } = require('./db');
 const authRoutes = require('./auth/routes');
 const cardsRoutes = require('./routes/cards');
+const duelsRoutes = require('./routes/duels');
 
 const app = express();
 app.set('trust proxy', 1); // correct client IP behind a hosting proxy (for rate limiting)
@@ -36,6 +37,7 @@ app.use(globalLimiter);
 
 app.use('/auth', authLimiter, authRoutes);
 app.use(cardsRoutes);
+app.use(duelsRoutes);
 
 if (require.main === module) {
   Promise.all([authPool.query('SELECT 1'), userPool.query('SELECT 1')])

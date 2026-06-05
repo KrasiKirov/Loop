@@ -385,4 +385,62 @@ router.put('/me/goal', requireAuth, validate(goalSchema), async (req, res) => {
   }
 });
 
+// ---- Leaderboards & weekly league (user_ratings is public-read) ----
+
+// Top players for a scope: a pattern slug (drill skill) or 'overall' (duel Elo).
+router.get('/leaderboard/:scope', requireAuth, async (req, res) => {
+  const { scope } = req.params;
+  if (scope !== 'overall' && !VALID_PATTERN_SLUGS.includes(scope)) {
+    return res.status(400).json({ error: 'Invalid scope' });
+  }
+  try {
+    const top = await userPool.query(
+      `SELECT username, rating,
+              ROW_NUMBER() OVER (ORDER BY rating DESC, username ASC)::int AS rank
+         FROM user_ratings WHERE subject = $1
+         ORDER BY rating DESC, username ASC LIMIT 20`,
+      [scope]
+    );
+    // The requester's own standing, even if outside the top 20 (best rank on ties).
+    const mineQ = await userPool.query(
+      `SELECT rating,
+              (SELECT count(*) FROM user_ratings WHERE subject = $1 AND rating > r.rating)::int + 1 AS rank
+         FROM user_ratings r WHERE subject = $1 AND user_id = $2`,
+      [scope, req.user.id]
+    );
+    const me = mineQ.rows.length ? { rank: mineQ.rows[0].rank, rating: mineQ.rows[0].rating } : null;
+    res.json({ scope, top: top.rows, me });
+  } catch (err) {
+    console.error('Error fetching leaderboard:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// This week's duel league: 'overall' (duel) ratings among players active this ISO week.
+router.get('/league/current', requireAuth, async (req, res) => {
+  try {
+    const top = await userPool.query(
+      `SELECT username, rating,
+              ROW_NUMBER() OVER (ORDER BY rating DESC, username ASC)::int AS rank
+         FROM user_ratings
+         WHERE subject = 'overall' AND updated_at >= date_trunc('week', now())
+         ORDER BY rating DESC, username ASC LIMIT 20`
+    );
+    const mineQ = await userPool.query(
+      `SELECT rating,
+              (SELECT count(*) FROM user_ratings
+                 WHERE subject = 'overall' AND updated_at >= date_trunc('week', now()) AND rating > r.rating)::int + 1 AS rank
+         FROM user_ratings r
+         WHERE subject = 'overall' AND user_id = $1 AND updated_at >= date_trunc('week', now())`,
+      [req.user.id]
+    );
+    const me = mineQ.rows.length ? { rank: mineQ.rows[0].rank, rating: mineQ.rows[0].rating } : null;
+    const wk = await userPool.query(`SELECT to_char(date_trunc('week', now()), 'YYYY-MM-DD') AS w`);
+    res.json({ weekStart: wk.rows[0].w, top: top.rows, me });
+  } catch (err) {
+    console.error('Error fetching league:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 module.exports = router;

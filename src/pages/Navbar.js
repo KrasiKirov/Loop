@@ -21,7 +21,9 @@ function Navbar() {
 
         <div className="navbar-links">
           <NavLink className="navbar-link" to="/home">Patterns</NavLink>
-          {/* Leaderboard + Profile return in Phases 5/3 (leagues, mastery stats). */}
+          <NavLink className="navbar-link" to="/home/review">Review</NavLink>
+          <NavLink className="navbar-link" to="/home/duel">Duel</NavLink>
+          <NavLink className="navbar-link" to="/home/leagues">Leagues</NavLink>
         </div>
 
         <div className="navbar-right">
