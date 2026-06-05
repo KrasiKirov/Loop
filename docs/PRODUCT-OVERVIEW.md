@@ -1,6 +1,6 @@
 # Product Overview
 
-> Working brand in the UI is **"Bold"** (inherited; the name is not final). This document describes the app as it actually exists today on the `interview-pivot` branch, and clearly separates what is **built and playable now** from what is **designed and planned next**.
+> **Loop** — competitive, retention-first DSA interview prep. This document describes the app as it exists today and separates what is **built and playable now** from what is **planned next**.
 
 ---
 

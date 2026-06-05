@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "Backend API for Bold — competitive DSA interview prep",
+  "description": "Backend API for Loop — competitive DSA interview prep",
   "main": "src/server.js",
   "scripts": {
     "test": "node --test --test-concurrency=1 \"src/test/**/*.test.js\"",

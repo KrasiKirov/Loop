@@ -30,7 +30,7 @@ function SignupForm() {
     return (
         <div className="auth-container">
             <div className="auth-card">
-                <div className="auth-brand">Bold<span>.</span></div>
+                <div className="auth-brand">Loop<span>.</span></div>
                 <p className="auth-title">Create your account</p>
                 {message && <p className="auth-message">{message}</p>}
                 <form onSubmit={handleSubmit}>

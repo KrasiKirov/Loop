@@ -1,4 +1,4 @@
-# Bold — Competitive DSA Interview Prep
+# Loop — Competitive DSA Interview Prep
 
 A competitive, retention-first web app that drills software-engineering candidates on **data-structures-and-algorithms patterns** with fast, auto-graded cards, a chess-style skill rating, spaced repetition, and head-to-head duels. Built to fix the gap LeetCode ignores: you solve a problem on Monday and can't recall the pattern by Friday.
 
@@ -8,7 +8,7 @@ A competitive, retention-first web app that drills software-engineering candidat
 
 ## Why
 
-Most interview prep is a giant pile of problems. The pile gives *exposure* but no **retention system** (you forget the pattern a week later) and no **objective sense of where you stand**. Bold targets exactly those gaps: spaced repetition so you don't forget, and a rated, competitive loop so you always know your level and watch it climb.
+Most interview prep is a giant pile of problems. The pile gives *exposure* but no **retention system** (you forget the pattern a week later) and no **objective sense of where you stand**. Loop closes exactly those gaps: spaced repetition so you don't forget, and a rated, competitive ladder so you always know your level and watch it climb.
 
 ## What it does
 

@@ -16,7 +16,7 @@ function Navbar() {
     <div>
       <nav className="navbar">
         <NavLink className="navbar-brand" to="/home">
-          Bold<span className="brand-dot">.</span>
+          Loop<span className="brand-dot">.</span>
         </NavLink>
 
         <div className="navbar-links">

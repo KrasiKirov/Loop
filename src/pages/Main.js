@@ -14,7 +14,7 @@ function Main() {
         </Helmet>
             <div className="landing-glow" />
             <div className="landing-content">
-                <h1 className="landing-title">Bold<span className="landing-dot">.</span></h1>
+                <h1 className="landing-title">Loop<span className="landing-dot">.</span></h1>
                 <p className="landing-tagline">Drill the patterns. Climb the ranks.</p>
                 <p className="landing-blurb">
                     Competitive, rated prep for coding interviews. Drill DSA patterns in
