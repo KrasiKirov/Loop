@@ -1,7 +1,5 @@
 # Product Overview
 
-> **Loop** — competitive, retention-first DSA interview prep. This document describes the app as it exists today and separates what is **built and playable now** from what is **planned next**.
-
 ---
 
 ## In one sentence
@@ -125,9 +123,9 @@ This is a genuinely well-built system, which matters both for reliability and as
 
 **The full planned feature set is built and tested — a complete product, not a slice.**
 
-- ✅ **Built & playable:** the adaptive **solo drill loop** (server-side grading, per-pattern Elo, streaks); **spaced-repetition review** mode; an **interview-date countdown**; **async duels** vs a friend or a ghost opponent with overall Elo; and **leagues** (per-pattern, duel-rating, and weekly ladders).
-- ✅ **Content:** 5 patterns fully stocked (~125 cards across all four formats) + starter cards for the other 13.
-- 🔭 **Not yet done:** expanding the remaining 13 patterns to full decks, and server-measured duel timing (the tiebreak currently trusts client-reported time — fine for a portfolio demo, a known limitation for a real competitive ladder).
+- **Built & playable:** the adaptive **solo drill loop** (server-side grading, per-pattern Elo, streaks); **spaced-repetition review** mode; an **interview-date countdown**; **async duels** vs a friend or a ghost opponent with overall Elo; and **leagues** (per-pattern, duel-rating, and weekly ladders).
+- **Content:** 5 patterns fully stocked (~125 cards across all four formats) + starter cards for the other 13.
+- **Not yet done:** expanding the remaining 13 patterns to full decks, and server-measured duel timing (the tiebreak currently trusts client-reported time — fine for a portfolio demo, a known limitation for a real competitive ladder).
 
 It was a deliberate choice to build the whole feature set rather than stop at a validation gate: the goal here is a complete, demonstrable engineering artifact.
 
@@ -139,12 +137,6 @@ It was a deliberate choice to build the whole feature set rather than stop at a 
 2. **Server-measured duel timing** — record per-card time on the server so the speed tiebreak can't be gamed (today it trusts the client).
 3. **Profile / analytics** — a richer view of rating history and per-pattern mastery trends.
 4. **Live duels** — a real-time mode on top of the existing async one, once there's concurrent traffic to support it.
-
----
-
-## Where it came from (origin)
-
-The app is a deliberate pivot. It was refactored in place from a previously built **academic adaptive-learning quiz app** (16 university subjects — calculus, organic chemistry, anatomy, etc. — with ~960 exam questions and the same adaptive-Elo engine). That earlier app is preserved on an archive branch. The pivot reused its hardened backend — auth, Row-Level Security, the rating engine, server-side grading — and swapped the academic content domain for DSA interview patterns plus the competitive/retention mechanics. The earlier app is preserved on the `academic-archive` branch.
 
 ---
 
