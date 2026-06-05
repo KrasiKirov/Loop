@@ -283,6 +283,21 @@ router.post('/duels/:id/submit', requireAuth, validate(submitSchema), async (req
         [id, req.user.id, numCorrect, totalMs]
       );
 
+      // Serialize concurrent submits on the SAME duel with a row lock. The second
+      // submitter blocks on FOR UPDATE until the first commits, then (re-reading
+      // under READ COMMITTED) sees the first's committed duel_results row. Without
+      // this, two players could both observe "both results present" and resolve
+      // twice (double-rate), or neither sees the other's uncommitted row and the
+      // duel stays pending forever.
+      const lockedQ = await client.query(
+        'SELECT status FROM duels WHERE id = $1 FOR UPDATE',
+        [id]
+      );
+      // Re-check status under the lock; a concurrent submit may have already resolved.
+      if (lockedQ.rows.length && lockedQ.rows[0].status === 'complete') {
+        return { conflict: true };
+      }
+
       const mine = { numCorrect, totalMs };
       const cardRows = duel.card_ids.map((cid) => byId.get(cid)).filter(Boolean);
 
@@ -291,10 +306,11 @@ router.post('/duels/:id/submit', requireAuth, validate(submitSchema), async (req
       let opponentId = null;
       let opponentName = null;
       let ready = false;
+      let ghostRating = null;
 
       if (duel.is_ghost) {
         // Ghost plays at the challenger's current overall rating.
-        const ghostRating = await overallRating(client, duel.challenger_id);
+        ghostRating = await overallRating(client, duel.challenger_id);
         opponentScore = ghostScore(cardRows, ghostRating);
         opponentName = 'Ghost';
         ready = true;
@@ -323,13 +339,22 @@ router.post('/duels/:id/submit', requireAuth, validate(submitSchema), async (req
         };
       }
 
-      // Resolve: mark complete and update overall Elo for each human player.
-      await client.query("UPDATE duels SET status = 'complete' WHERE id = $1", [id]);
+      // Resolve: atomically claim the duel. Belt-and-suspenders alongside the
+      // FOR UPDATE lock — only the txn that flips pending->complete proceeds to
+      // apply Elo, so resolution happens exactly once.
+      const claimQ = await client.query(
+        "UPDATE duels SET status = 'complete' WHERE id = $1 AND status = 'pending' RETURNING id",
+        [id]
+      );
+      if (!claimQ.rows.length) {
+        // Someone else resolved it first (should be precluded by the lock above).
+        return { conflict: true };
+      }
 
       const myOutcome = outcomeFor(mine, opponentScore);
       const myOverall = await overallRating(client, req.user.id);
       const myOpponentRatingForElo = duel.is_ghost
-        ? await overallRating(client, duel.challenger_id)
+        ? ghostRating
         : await overallRating(client, opponentId);
       const myNew = updateRatings(myOverall, myOpponentRatingForElo, myOutcome);
       await setOverall(client, req.user.id, req.user.username, myNew);
@@ -368,6 +393,10 @@ router.post('/duels/:id/submit', requireAuth, validate(submitSchema), async (req
     // Apply the opponent's overall-rating update under THEIR own context (RLS:
     // user_ratings writes are self-only). This runs after the resolving txn that
     // marked the duel complete and rated the submitter.
+    // Remaining rare window: if the process dies between the resolving commit and
+    // this opponent update, the opponent isn't rated (the duel is still complete).
+    // Acceptable for now; a SECURITY DEFINER resolver writing both ratings inside
+    // the resolving txn would close it.
     if (out.oppUpdate) {
       const u = out.oppUpdate;
       await withUserContext(u.userId, async (client) => {

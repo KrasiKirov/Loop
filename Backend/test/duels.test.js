@@ -216,6 +216,71 @@ test('real duel: pending until both submit, higher score wins, ratings diverge',
   assert.strictEqual(bSummary.body.winner, 'alice');
 });
 
+test('real duel: concurrent submits resolve exactly once (no double-rate, no stuck pending)', async () => {
+  await resetDb();
+  const ta = await signup('conA');
+  const tb = await signup('conB');
+  await seedCards(6);
+
+  const create = await request(app)
+    .post('/duels')
+    .set('Authorization', `Bearer ${ta}`)
+    .send({ patternSlug: 'sliding-window', size: 6, opponentUsername: 'conB' });
+  assert.strictEqual(create.status, 200);
+  const duelId = create.body.id;
+
+  // A all-correct, B all-wrong → A must win.
+  const aAns = await answersFor(ta, duelId);
+  const bAns = await answersFor(tb, duelId, () => 'Greedy');
+
+  // Both players submit at the same time.
+  const [aSub, bSub] = await Promise.all([
+    request(app)
+      .post(`/duels/${duelId}/submit`)
+      .set('Authorization', `Bearer ${ta}`)
+      .send(aAns.body),
+    request(app)
+      .post(`/duels/${duelId}/submit`)
+      .set('Authorization', `Bearer ${tb}`)
+      .send(bAns.body),
+  ]);
+  // Both requests succeed (no 5xx); the duel must end complete with a winner.
+  assert.ok(aSub.status === 200, `A submit status ${aSub.status}`);
+  assert.ok(bSub.status === 200, `B submit status ${bSub.status}`);
+
+  const summary = await request(app)
+    .get(`/duels/${duelId}`)
+    .set('Authorization', `Bearer ${ta}`);
+  assert.strictEqual(summary.body.status, 'complete');
+  assert.strictEqual(summary.body.winner, 'you'); // A (the caller) won.
+
+  // Exactly one Elo step per player: winner above BASE, loser below, and each
+  // delta's magnitude <= the max single-step K (=40). Doubling would exceed it.
+  const { kFactor } = require('../elo');
+  const MAX_K = kFactor(1000); // 40 at BASE_RATING
+  const aR = (
+    await pool.query(
+      "SELECT ur.rating FROM user_ratings ur JOIN users u ON u.id = ur.user_id WHERE u.username = 'conA' AND ur.subject = 'overall'"
+    )
+  ).rows[0].rating;
+  const bR = (
+    await pool.query(
+      "SELECT ur.rating FROM user_ratings ur JOIN users u ON u.id = ur.user_id WHERE u.username = 'conB' AND ur.subject = 'overall'"
+    )
+  ).rows[0].rating;
+  assert.ok(aR > 1000, `winner conA above base, got ${aR}`);
+  assert.ok(bR < 1000, `loser conB below base, got ${bR}`);
+  assert.ok(Math.abs(aR - 1000) <= MAX_K, `conA delta ${aR - 1000} within one K step`);
+  assert.ok(Math.abs(bR - 1000) <= MAX_K, `conB delta ${bR - 1000} within one K step`);
+
+  // Exactly one duel_results row per human user.
+  const cnt = await pool.query(
+    'SELECT count(*)::int AS n FROM duel_results WHERE duel_id = $1 AND user_id IS NOT NULL',
+    [duelId]
+  );
+  assert.strictEqual(cnt.rows[0].n, 2);
+});
+
 test('real duel: tie on correct broken by lower totalMs', async () => {
   await resetDb();
   const ta = await signup('cara');
