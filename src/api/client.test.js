@@ -10,7 +10,7 @@ test('on 401 it refreshes once and retries with the new token', async () => {
   const calls = [];
   global.fetch = jest.fn((url, opts) => {
     calls.push({ url, auth: opts.headers && opts.headers.Authorization });
-    if (url.endsWith('/questions?subject=Calculus') && opts.headers.Authorization === 'Bearer old-access') {
+    if (url.endsWith('/cards/next?pattern=sliding-window') && opts.headers.Authorization === 'Bearer old-access') {
       return Promise.resolve({ status: 401, ok: false });
     }
     if (url.endsWith('/auth/refresh')) {
@@ -19,7 +19,7 @@ test('on 401 it refreshes once and retries with the new token', async () => {
     return Promise.resolve({ status: 200, ok: true, json: () => Promise.resolve([{ question: 'q' }]) });
   });
 
-  const res = await apiFetch('/questions?subject=Calculus');
+  const res = await apiFetch('/cards/next?pattern=sliding-window');
   expect(res.status).toBe(200);
   expect(localStorage.getItem('accessToken')).toBe('new-access');
   expect(localStorage.getItem('refreshToken')).toBe('refresh-2');

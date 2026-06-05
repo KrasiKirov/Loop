@@ -5,21 +5,11 @@ const requireAuth = require('../middleware/requireAuth');
 const { validate } = require('../middleware/validate');
 const { VALID_PATTERN_SLUGS } = require('../patterns');
 const { BASE_RATING, expectedScore, updateRatings } = require('../elo');
+const { shuffle } = require('../shuffle');
 
 const router = express.Router();
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-// Fisher-Yates shuffle (returns a new array) — same per-serve shuffle as cards.js
-// so the position of the correct option carries no information.
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
 
 const createSchema = z.object({
   patternSlug: z.string().optional(),

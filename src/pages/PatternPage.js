@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { useQuizSettings } from '../QuizContext';
+import { useDrillSettings } from '../DrillContext';
 import { patternLabel } from '../patternLabels';
-import '../subject.css';
+import './PatternPage.css';
 
 const LEVELS = [
   { key: 'easy', label: 'Easy', desc: 'Warm up', pips: 1 },
@@ -12,17 +12,17 @@ const LEVELS = [
 
 const PatternPage = () => {
   const { slug } = useParams();
-  const { setQuizSettings } = useQuizSettings();
+  const { setDrillSettings } = useDrillSettings();
   const navigate = useNavigate();
 
   const start = (difficulty) => {
-    setQuizSettings({ pattern: slug, difficulty });
+    setDrillSettings({ pattern: slug, difficulty });
     navigate('/home/drill');
   };
 
   return (
-    <div className="subject-page">
-      <div className="subject-head">
+    <div className="pattern-page">
+      <div className="pattern-head">
         <nav className="breadcrumb">
           <Link to="/home">Patterns</Link>
           <span className="sep">/</span>

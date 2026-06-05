@@ -6,6 +6,7 @@ const { validate } = require('../middleware/validate');
 const { VALID_PATTERN_SLUGS } = require('../patterns');
 const { BASE_RATING, getBounds, updateRatings } = require('../elo');
 const { nextSrs } = require('../srs');
+const { shuffle } = require('../shuffle');
 
 const router = express.Router();
 
@@ -38,18 +39,6 @@ function daysUntil(goalDate) {
 }
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-// Fisher-Yates shuffle (returns a new array). Cards are stored with a strong
-// "correct option first" bias from generation; shuffling per serve removes any
-// positional tell so the slot a user clicks carries no information.
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
 
 // List all patterns with the user's per-pattern rating, mastery, and due count.
 router.get('/patterns', requireAuth, async (req, res) => {
