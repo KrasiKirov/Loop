@@ -22,6 +22,7 @@ function Navbar() {
         <div className="navbar-links">
           <NavLink className="navbar-link" to="/home">Patterns</NavLink>
           <NavLink className="navbar-link" to="/home/review">Review</NavLink>
+          <NavLink className="navbar-link" to="/home/duel">Duel</NavLink>
           {/* Leaderboard returns in Phase 5 (leagues). */}
         </div>
 

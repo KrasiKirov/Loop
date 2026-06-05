@@ -16,6 +16,9 @@ import PatternHub from './pages/PatternHub';
 import PatternPage from './pages/PatternPage';
 import Drill from './pages/Drill';
 import Review from './pages/Review';
+import DuelCreate from './pages/DuelCreate';
+import DuelPlay from './pages/DuelPlay';
+import DuelResult from './pages/DuelResult';
 
 export default function App() {
   return (
@@ -35,6 +38,9 @@ export default function App() {
                 <Route path="/home/pattern/:slug" element={<PatternPage />} />
                 <Route path="/home/drill" element={<Drill />} />
                 <Route path="/home/review" element={<Review />} />
+                <Route path="/home/duel" element={<DuelCreate />} />
+                <Route path="/home/duel/:id" element={<DuelResult />} />
+                <Route path="/home/duel/:id/play" element={<DuelPlay />} />
               </Route>
             </Route>
 
