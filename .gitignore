@@ -14,6 +14,8 @@ backend/build
 
 # misc
 .DS_Store
+.claude/
+tasks/
 
 # secrets — never commit real env files (commit .env.example instead)
 .env
