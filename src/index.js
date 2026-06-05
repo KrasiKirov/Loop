@@ -19,6 +19,7 @@ import Review from './pages/Review';
 import DuelCreate from './pages/DuelCreate';
 import DuelPlay from './pages/DuelPlay';
 import DuelResult from './pages/DuelResult';
+import Leagues from './pages/Leagues';
 
 export default function App() {
   return (
@@ -41,6 +42,7 @@ export default function App() {
                 <Route path="/home/duel" element={<DuelCreate />} />
                 <Route path="/home/duel/:id" element={<DuelResult />} />
                 <Route path="/home/duel/:id/play" element={<DuelPlay />} />
+                <Route path="/home/leagues" element={<Leagues />} />
               </Route>
             </Route>
 
