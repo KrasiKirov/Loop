@@ -11,9 +11,55 @@
   font-size: 18px;
 }
 
-.hub-header { margin-bottom: var(--space-8); }
+.hub-header { margin-bottom: var(--space-5); }
 .hub-header h1 { font-size: 30px; margin-bottom: var(--space-2); }
 .hub-header p { color: var(--text-muted); font-size: 15px; }
+
+.hub-stats {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-8);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.hub-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+}
+.hub-stat strong { font-family: var(--font-display); color: var(--text); font-weight: 600; }
+.hub-stat-action {
+  cursor: pointer;
+  color: var(--accent);
+  border-color: var(--accent-dim);
+  background: var(--accent-dim);
+  transition: all var(--dur) var(--ease);
+}
+.hub-stat-action strong { color: var(--accent); }
+.hub-stat-action:hover { border-color: var(--accent); }
+.hub-goal-edit label { text-transform: uppercase; letter-spacing: 0.06em; font-size: 11px; }
+.hub-goal-edit input {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  padding: 2px var(--space-2);
+  font-size: 13px;
+}
+.hub-link {
+  color: var(--accent);
+  font-size: 12px;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
 
 .pattern-grid {
   display: grid;

@@ -15,6 +15,7 @@ import PrivateRoute from './components/PrivateRoute';
 import PatternHub from './pages/PatternHub';
 import PatternPage from './pages/PatternPage';
 import Drill from './pages/Drill';
+import Review from './pages/Review';
 
 export default function App() {
   return (
@@ -33,6 +34,7 @@ export default function App() {
                 <Route path="/home" element={<PatternHub />} />
                 <Route path="/home/pattern/:slug" element={<PatternPage />} />
                 <Route path="/home/drill" element={<Drill />} />
+                <Route path="/home/review" element={<Review />} />
               </Route>
             </Route>
 
