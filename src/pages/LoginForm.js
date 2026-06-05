@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './auth.css';
 import { Link } from 'react-router-dom';
-import { useUser } from '../AuthContext';
+import { useUser } from '../context/AuthContext';
 
 function LoginForm() {
     const [username, setUsername] = useState('');
@@ -29,7 +29,7 @@ function LoginForm() {
     return (
         <div className="auth-container">
             <div className="auth-card">
-                <div className="auth-brand">Bold<span>.</span></div>
+                <div className="auth-brand">Loop<span>.</span></div>
                 <p className="auth-title">Welcome back</p>
                 {message && <p className="auth-message">{message}</p>}
                 <form onSubmit={handleSubmit}>

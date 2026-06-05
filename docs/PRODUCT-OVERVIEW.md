@@ -1,6 +1,6 @@
 # Product Overview
 
-> Working brand in the UI is **"Bold"** (inherited; the name is not final). This document describes the app as it actually exists today on the `interview-pivot` branch, and clearly separates what is **built and playable now** from what is **designed and planned next**.
+> **Loop** — competitive, retention-first DSA interview prep. This document describes the app as it exists today and separates what is **built and playable now** from what is **planned next**.
 
 ---
 
@@ -92,7 +92,7 @@ Cards are **tiered by difficulty** within each format, so an "identify the patte
 
 Under the hood, every answer updates a **Leitner-style spaced-repetition schedule**: get a card right and it's pushed further out (10 min → 1 day → 3 → 7 → 16 → 35 days); get it wrong and it resets to ~10 minutes. Each pattern shows how many cards are "due." 
 
-*Status: the scheduling engine is built and writes on every answer; the dedicated "review your due cards" screen is the next phase.*
+*Status: built end-to-end — the schedule writes on every answer, and a "review your due cards" mode serves them back across patterns.*
 
 ---
 
@@ -100,7 +100,7 @@ Under the hood, every answer updates a **Leitner-style spaced-repetition schedul
 
 The content map is the **Blind-75 / NeetCode taxonomy** — 18 patterns covering the canonical new-grad interview surface: Arrays & Hashing, Two Pointers, Sliding Window, Stack, Binary Search, Linked List, Trees, Tries, Heap/Priority Queue, Backtracking, Graphs, Advanced Graphs, 1-D DP, 2-D DP, Greedy, Intervals, Math & Geometry, Bit Manipulation.
 
-Each pattern is meant to carry ~20–30 cards across the four formats. Content is authored and quality-checked one pattern at a time through a generate → validate → expert-review → load pipeline, so the bank grows in trustworthy increments rather than a giant unvetted dump. **Sliding Window is live (25 cards); the rest are planned.**
+Each pattern carries ~20–30 cards across the four formats. Content is authored and quality-checked one pattern at a time through a generate → validate → review → load pipeline, so the bank grows in trustworthy increments rather than a giant unvetted dump. **5 patterns are fully stocked (Sliding Window, Two Pointers, Binary Search, Stack, Arrays & Hashing — ~125 cards), and the remaining 13 have starter cards; expanding them to full decks is the main remaining content work.**
 
 ---
 
@@ -123,29 +123,28 @@ This is a genuinely well-built system, which matters both for reliability and as
 
 ## Current status (the honest version)
 
-**This is a working MVP vertical slice sitting at a validation gate — not a finished product.**
+**The full planned feature set is built and tested — a complete product, not a slice.**
 
-- ✅ **Built & playable:** the full adaptive **solo drill loop** — sign up, browse patterns, drill Sliding Window across all four card formats, with server-side grading, per-pattern Elo, streaks, and spaced-repetition scheduling.
-- 🟡 **Built but not yet user-facing:** the spaced-repetition *schedule* (review screen is next); the data model for duels and leagues exists, but they aren't playable yet.
-- 🔭 **Designed, not built:** asynchronous **duels** (race a friend or a "ghost" opponent through a card set), **weekly leagues / leaderboards**, and the remaining 17 patterns of content.
+- ✅ **Built & playable:** the adaptive **solo drill loop** (server-side grading, per-pattern Elo, streaks); **spaced-repetition review** mode; an **interview-date countdown**; **async duels** vs a friend or a ghost opponent with overall Elo; and **leagues** (per-pattern, duel-rating, and weekly ladders).
+- ✅ **Content:** 5 patterns fully stocked (~125 cards across all four formats) + starter cards for the other 13.
+- 🔭 **Not yet done:** expanding the remaining 13 patterns to full decks, and server-measured duel timing (the tiebreak currently trusts client-reported time — fine for a portfolio demo, a known limitation for a real competitive ladder).
 
-The reason it stops here on purpose: the next investment is gated on real validation — putting the drill loop in front of ~10–15 new grads to confirm the retention pain is real and the format hooks them, *before* building the competitive layers.
+It was a deliberate choice to build the whole feature set rather than stop at a validation gate: the goal here is a complete, demonstrable engineering artifact.
 
 ---
 
-## What's designed and coming next (roadmap)
+## What's next (roadmap)
 
-1. **Review mode** — a "you have N cards due" session driven by the spaced-repetition schedule.
-2. **Asynchronous duels** — challenge a friend (or an auto-generated ghost opponent at a target rating) to the same set of cards; faster + more correct wins; both ratings move. Async so it works even with few concurrent users.
-3. **Leagues & leaderboards** — overall, per-pattern, and weekly competitive ladders — the rating you can screenshot, and the growth loop.
-4. **The rest of the taxonomy** — author the remaining 17 patterns' decks.
-5. **Retention hooks** — interview-date countdown, daily goal, streak protection.
+1. **Full decks for the remaining 13 patterns** — expand the starter cards to ~25 each through the content pipeline.
+2. **Server-measured duel timing** — record per-card time on the server so the speed tiebreak can't be gamed (today it trusts the client).
+3. **Profile / analytics** — a richer view of rating history and per-pattern mastery trends.
+4. **Live duels** — a real-time mode on top of the existing async one, once there's concurrent traffic to support it.
 
 ---
 
 ## Where it came from (origin)
 
-The app is a deliberate pivot. It was refactored in place from a previously built **academic adaptive-learning quiz app** (16 university subjects — calculus, organic chemistry, anatomy, etc. — with ~960 exam questions and the same adaptive-Elo engine). That earlier app is preserved on an archive branch. The pivot reused its hardened backend — auth, Row-Level Security, the rating engine, server-side grading — and swapped the academic content domain for DSA interview patterns plus the competitive/retention mechanics. So the engineering foundation is mature even though the interview product itself is early.
+The app is a deliberate pivot. It was refactored in place from a previously built **academic adaptive-learning quiz app** (16 university subjects — calculus, organic chemistry, anatomy, etc. — with ~960 exam questions and the same adaptive-Elo engine). That earlier app is preserved on an archive branch. The pivot reused its hardened backend — auth, Row-Level Security, the rating engine, server-side grading — and swapped the academic content domain for DSA interview patterns plus the competitive/retention mechanics. The earlier app is preserved on the `academic-archive` branch.
 
 ---
 
@@ -153,4 +152,4 @@ The app is a deliberate pivot. It was refactored in place from a previously buil
 
 - **To a recruiter / on a résumé:** "A full-stack, security-hardened interview-prep platform (React + Node + PostgreSQL with row-level security, token auth, server-authoritative grading) built around a spaced-repetition + Elo engine — designed to fix the retention gap in LeetCode-style prep."
 - **To a potential user (new grad):** "It drills you on *recognizing* DSA patterns and the key insight, rates your skill like chess, and uses spaced repetition so you stop forgetting the patterns you 'learned' last week."
-- **To a friend / investor:** "Chess.com for coding interviews — competitive, rated, retention-first. The bet is that a competitive skill rating plus spaced repetition is a sharper hook than yet another problem bank. We've built the engine and one pattern; we're validating the hook with real new grads before scaling content and adding duels."
+- **To a friend / investor:** "Chess.com for coding interviews — competitive, rated, retention-first. The bet is that a competitive skill rating plus spaced repetition is a sharper hook than yet another problem bank. The full loop is built — adaptive drilling, spaced repetition, duels, and leagues — across five stocked patterns; the next step is breadth of content and putting it in front of real users."

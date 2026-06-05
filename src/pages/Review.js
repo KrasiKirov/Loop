@@ -4,7 +4,7 @@ import './Drill.css';
 import { apiFetch } from '../api/client';
 import MathText from '../components/MathText';
 import CodeBlock from '../components/CodeBlock';
-import { patternLabel, formatLabel } from '../patternLabels';
+import { patternLabel, formatLabel } from '../utils/patternLabels';
 
 const EMPTY = { id: '', format: '', prompt: '', code: null, answers: [], rating: 0, pattern: '' };
 

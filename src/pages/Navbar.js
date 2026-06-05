@@ -1,7 +1,7 @@
 import React from 'react';
-import { useUser } from '../AuthContext';
+import { useUser } from '../context/AuthContext';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import '../Navbar.css';
+import './Navbar.css';
 
 function Navbar() {
   const { user, logout } = useUser();
@@ -16,7 +16,7 @@ function Navbar() {
     <div>
       <nav className="navbar">
         <NavLink className="navbar-brand" to="/home">
-          Bold<span className="brand-dot">.</span>
+          Loop<span className="brand-dot">.</span>
         </NavLink>
 
         <div className="navbar-links">

@@ -1,6 +1,6 @@
 import './theme.css';
-import { UserProvider } from './AuthContext';
-import { QuizProvider } from './QuizContext';
+import { UserProvider } from './context/AuthContext';
+import { DrillProvider } from './context/DrillContext';
 
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
@@ -23,7 +23,7 @@ import Leagues from './pages/Leagues';
 
 export default function App() {
   return (
-    <QuizProvider>
+    <DrillProvider>
       <UserProvider>
         <BrowserRouter>
           <Routes>
@@ -50,7 +50,7 @@ export default function App() {
           </Routes>
         </BrowserRouter>
       </UserProvider>
-    </QuizProvider>
+    </DrillProvider>
   );
 }
 

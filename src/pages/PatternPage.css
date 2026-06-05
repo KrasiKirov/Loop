@@ -1,0 +1,93 @@
+.pattern-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: var(--space-12) var(--space-6) var(--space-16);
+}
+
+/* Header */
+.pattern-head {
+  text-align: center;
+  margin-bottom: var(--space-12);
+}
+
+.breadcrumb {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: var(--space-6);
+}
+.breadcrumb a { color: var(--text-muted); }
+.breadcrumb a:hover { color: var(--accent); }
+.breadcrumb .sep { color: var(--border); }
+
+.pattern-head h1 {
+  font-size: 40px;
+  letter-spacing: -0.02em;
+}
+.pattern-head p {
+  font-size: 17px;
+  color: var(--text-muted);
+  margin: var(--space-3) auto 0;
+  max-width: 560px;
+}
+
+/* Difficulty grid */
+.difficulty-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.difficulty-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-8) var(--space-6);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  transition: transform var(--dur) var(--ease), border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.difficulty-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-raised);
+}
+.difficulty-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.difficulty-card h5 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+}
+.difficulty-card .difficulty-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* Pips */
+.pips { display: flex; gap: var(--space-2); }
+.pip {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+}
+.pip.filled {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+@media (max-width: 720px) {
+  .difficulty-grid { grid-template-columns: 1fr; }
+}

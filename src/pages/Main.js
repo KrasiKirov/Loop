@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
-import '../Main.css';
+import './Main.css';
 
 function Main() {
     const navigate = useNavigate();
@@ -14,11 +14,12 @@ function Main() {
         </Helmet>
             <div className="landing-glow" />
             <div className="landing-content">
-                <h1 className="landing-title">Bold<span className="landing-dot">.</span></h1>
-                <p className="landing-tagline">Test yourself. Compete.</p>
+                <h1 className="landing-title">Loop<span className="landing-dot">.</span></h1>
+                <p className="landing-tagline">Drill the patterns. Climb the ranks.</p>
                 <p className="landing-blurb">
-                    Adaptive practice that meets you at your level. Every question is
-                    matched to your ELO, with instant feedback that pushes you forward.
+                    Competitive, rated prep for coding interviews. Drill DSA patterns in
+                    seconds, fix what you forget with spaced repetition, and duel your way
+                    up the leaderboard.
                 </p>
                 <div className="landing-actions">
                     <button onClick={() => navigate('/signup')} className="btn btn-primary">Get started</button>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import './auth.css';
-import { useUser } from '../AuthContext';
+import { useUser } from '../context/AuthContext';
 
 function SignupForm() {
     const [name, setName] = useState('');
@@ -30,7 +30,7 @@ function SignupForm() {
     return (
         <div className="auth-container">
             <div className="auth-card">
-                <div className="auth-brand">Bold<span>.</span></div>
+                <div className="auth-brand">Loop<span>.</span></div>
                 <p className="auth-title">Create your account</p>
                 {message && <p className="auth-message">{message}</p>}
                 <form onSubmit={handleSubmit}>

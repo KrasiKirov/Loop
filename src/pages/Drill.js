@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Drill.css';
-import { useQuizSettings } from '../QuizContext';
+import { useDrillSettings } from '../context/DrillContext';
 import { apiFetch } from '../api/client';
 import MathText from '../components/MathText';
 import CodeBlock from '../components/CodeBlock';
-import { patternLabel, formatLabel } from '../patternLabels';
+import { patternLabel, formatLabel } from '../utils/patternLabels';
 
 const BASE_RATING = 1000;
 const EMPTY = { id: '', format: '', prompt: '', code: null, answers: [], rating: 0 };
 
 const Drill = () => {
-  const { quizSettings, setQuizSettings } = useQuizSettings();
+  const { drillSettings, setDrillSettings } = useDrillSettings();
   const navigate = useNavigate();
 
   const [card, setCard] = useState(EMPTY);
@@ -28,7 +28,7 @@ const Drill = () => {
   const seenIds = useRef([]);      // cards already shown this session (no repeats)
   const startedAt = useRef(Date.now()); // for timing the answer (ms)
 
-  const pattern = quizSettings.pattern;
+  const pattern = drillSettings.pattern;
 
   useEffect(() => {
     if (!pattern) { navigate('/home'); return; }
@@ -37,18 +37,18 @@ const Drill = () => {
         const r = await apiFetch(`/me/ratings/${pattern}`);
         if (r.ok) setRating((await r.json()).rating);
       } catch (err) { /* display only */ }
-      await loadCard(quizSettings.difficulty);
+      await loadCard(drillSettings.difficulty);
     };
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const loadCard = async (difficulty = quizSettings.difficulty) => {
+  const loadCard = async (difficulty = drillSettings.difficulty) => {
     setLoading(true);
     setLoadError(false);
     setSubmitError('');
-    if (difficulty !== quizSettings.difficulty) {
-      setQuizSettings((prev) => ({ ...prev, difficulty }));
+    if (difficulty !== drillSettings.difficulty) {
+      setDrillSettings((prev) => ({ ...prev, difficulty }));
     }
     try {
       const exclude = seenIds.current.join(',');
