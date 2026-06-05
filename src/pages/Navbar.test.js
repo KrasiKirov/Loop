@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { UserProvider } from '../AuthContext';
+import { UserProvider } from '../context/AuthContext';
 import Navbar from './Navbar';
 
 test('navbar shows username and logout, and no ELO badge', () => {

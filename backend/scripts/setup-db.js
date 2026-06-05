@@ -38,7 +38,7 @@ async function main() {
   const exists = await pool.query("SELECT to_regclass('public.patterns') AS t");
   if (!exists.rows[0].t) {
     console.log('Applying schema.sql …');
-    await pool.query(readSql('schema.sql'));
+    await pool.query(readSql('db/schema.sql'));
   } else {
     console.log('Schema already present — skipping schema.sql.');
   }
@@ -57,7 +57,7 @@ async function main() {
   const cnt = await pool.query('SELECT count(*)::int AS n FROM cards');
   if (cnt.rows[0].n === 0) {
     for (const deck of DECKS) {
-      const r = await pool.query(readSql(`seed-cards/${deck}.sql`));
+      const r = await pool.query(readSql(`db/seeds/${deck}.sql`));
       console.log(`Loaded ${deck} (${r.rowCount} cards).`);
     }
   } else {

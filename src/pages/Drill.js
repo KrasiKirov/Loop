@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Drill.css';
-import { useDrillSettings } from '../DrillContext';
+import { useDrillSettings } from '../context/DrillContext';
 import { apiFetch } from '../api/client';
 import MathText from '../components/MathText';
 import CodeBlock from '../components/CodeBlock';
-import { patternLabel, formatLabel } from '../patternLabels';
+import { patternLabel, formatLabel } from '../utils/patternLabels';
 
 const BASE_RATING = 1000;
 const EMPTY = { id: '', format: '', prompt: '', code: null, answers: [], rating: 0 };

@@ -18,10 +18,10 @@ Note the **host**, **port**, and **database name** separately — the runtime ne
 
 ## 2. Bootstrap the database (one-time)
 
-From `Backend/`, run the bootstrap script with the **owner** connection string and the two app-role passwords you want to use. Generate strong passwords (`openssl rand -hex 24`).
+From `backend/`, run the bootstrap script with the **owner** connection string and the two app-role passwords you want to use. Generate strong passwords (`openssl rand -hex 24`).
 
 ```bash
-cd Backend
+cd backend
 npm install
 DATABASE_URL="postgres://OWNER:PW@HOST:5432/DBNAME" \
 DB_AUTH_PASSWORD="<strong-secret-1>" \
@@ -33,7 +33,7 @@ This applies `schema.sql` (tables, the `app_auth`/`app_user` roles, grants, RLS,
 
 ## 3. Deploy the backend (Render web service)
 
-- **Root directory:** `Backend`
+- **Root directory:** `backend`
 - **Build command:** `npm install`
 - **Start command:** `npm start`
 - **Environment variables:**
@@ -72,6 +72,6 @@ After the frontend has a URL, set the backend's `CORS_ORIGINS` to it and redeplo
 
 ## Notes
 
-- **Secrets** are never committed (`Backend/.env` is gitignored; use `Backend/.env.example` as the template).
+- **Secrets** are never committed (`backend/.env` is gitignored; use `backend/.env.example` as the template).
 - **Free tiers sleep:** a free Render service cold-starts after inactivity, so the first request may take ~30s. Fine for a portfolio demo.
 - **Single-platform alternative:** Render can host the backend, the Postgres, and the frontend (as a static site) together — set the same env vars and the same `setup-db` step.

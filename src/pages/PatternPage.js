@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { useDrillSettings } from '../DrillContext';
-import { patternLabel } from '../patternLabels';
+import { useDrillSettings } from '../context/DrillContext';
+import { patternLabel } from '../utils/patternLabels';
 import './PatternPage.css';
 
 const LEVELS = [

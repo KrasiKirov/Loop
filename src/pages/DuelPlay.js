@@ -4,7 +4,7 @@ import './Drill.css';
 import { apiFetch } from '../api/client';
 import MathText from '../components/MathText';
 import CodeBlock from '../components/CodeBlock';
-import { formatLabel } from '../patternLabels';
+import { formatLabel } from '../utils/patternLabels';
 
 // Play a duel: a fixed set of cards answered in sequence with NO per-card feedback
 // (it's a race — you find out the result only after submitting all answers).

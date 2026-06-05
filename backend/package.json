@@ -1,11 +1,11 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "server.js",
+  "description": "Backend API for Bold — competitive DSA interview prep",
+  "main": "src/server.js",
   "scripts": {
-    "test": "node --test --test-concurrency=1 \"test/**/*.test.js\"",
-    "start": "node server.js",
+    "test": "node --test --test-concurrency=1 \"src/test/**/*.test.js\"",
+    "start": "node src/server.js",
     "setup-db": "node scripts/setup-db.js"
   },
   "engines": {

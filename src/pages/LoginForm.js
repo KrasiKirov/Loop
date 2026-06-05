@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './auth.css';
 import { Link } from 'react-router-dom';
-import { useUser } from '../AuthContext';
+import { useUser } from '../context/AuthContext';
 
 function LoginForm() {
     const [username, setUsername] = useState('');

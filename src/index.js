@@ -1,6 +1,6 @@
 import './theme.css';
-import { UserProvider } from './AuthContext';
-import { DrillProvider } from './DrillContext';
+import { UserProvider } from './context/AuthContext';
+import { DrillProvider } from './context/DrillContext';
 
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';

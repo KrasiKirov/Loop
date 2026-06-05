@@ -53,7 +53,7 @@ The interesting part isn't the quiz — it's that it's built like a real product
 ```bash
 # 1. Database + content
 createdb adaptive_learning
-cd Backend
+cd backend
 npm install
 DB_NAME=adaptive_learning npm run setup-db    # schema + roles + 151 cards
 cp .env.example .env                           # defaults work for local trust auth
@@ -68,7 +68,7 @@ npm start                                       # serves on :3001; sign up and d
 Run the tests:
 
 ```bash
-cd Backend && npm test          # backend
+cd backend && npm test          # backend
 npm test                        # frontend (from repo root)
 ```
 

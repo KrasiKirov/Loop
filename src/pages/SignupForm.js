@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import './auth.css';
-import { useUser } from '../AuthContext';
+import { useUser } from '../context/AuthContext';
 
 function SignupForm() {
     const [name, setName] = useState('');

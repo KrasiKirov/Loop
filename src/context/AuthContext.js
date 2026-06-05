@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext } from 'react';
-import { setTokens, clearAuth } from './api/client';
+import { setTokens, clearAuth } from '../api/client';
 
 const AuthContext = createContext(null);
 export const useUser = () => useContext(AuthContext);
